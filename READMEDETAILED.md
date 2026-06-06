@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # VendorBridge 🚀
 
 **VendorBridge** is a complete procurement and vendor management system built to simplify how organizations interact with suppliers. It connects internal procurement teams with external vendors through a smooth, automated workflow—from raising RFQs to generating purchase orders and invoices.
@@ -163,3 +164,7 @@ This project is open-source and available under the **MIT License**.
 This project is designed to demonstrate a complete procurement workflow—from vendor onboarding to final invoicing—both as a real ERP module and as an easy-to-run demo app.
 
 Feel free to explore, modify, and build on top of it 🚀
+=======
+# VENDORBRIDGE
+An end-to-end ERP procurement and vendor management system built for Odoo 17, featuring automated RFQ wizards, portal bid submission, side-by-side quotation comparison, dynamic multi-level approvals, tax-compliant invoice auto-generation, and Chart.js analytics dashboard (includes a FastAPI mock application for live testing).
+>>>>>>> 9b2ec2ba1a9ae4456b976c3b981480abbe7f3e15
