@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vendor Category Tree -->
+    <record id="view_vendor_category_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.vendor.category.tree</field>
+        <field name="model">vendorbridge.vendor.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vendor Category Form -->
+    <record id="view_vendor_category_form" model="ir.ui.view">
+        <field name="name">vendorbridge.vendor.category.form</field>
+        <field name="model">vendorbridge.vendor.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vendor Category Action -->
+    <record id="action_vendor_category" model="ir.actions.act_window">
+        <field name="name">Vendor Categories</field>
+        <field name="res_model">vendorbridge.vendor.category</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Vendor List (Tree) -->
+    <record id="view_vendor_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.vendor.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="vendor_status=='approved'"
+                  decoration-warning="vendor_status=='pending'"
+                  decoration-danger="vendor_status in ('rejected','blocked')"
+                  decoration-muted="vendor_status=='draft'">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="gst_number"/>
+                <field name="vendor_category_id"/>
+                <field name="vendor_status" widget="badge"
+                       decoration-success="vendor_status=='approved'"
+                       decoration-warning="vendor_status=='pending'"
+                       decoration-danger="vendor_status in ('rejected','blocked')"
+                       decoration-info="vendor_status=='draft'"/>
+                <field name="vendor_rating" widget="float" options="{'precision': 1}"/>
+                <field name="total_orders"/>
+                <field name="state_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vendor Form -->
+    <record id="view_vendor_form" model="ir.ui.view">
+        <field name="name">vendorbridge.vendor.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve_vendor" string="Approve"
+                            type="object" class="btn-primary"
+                            invisible="vendor_status != 'pending'"
+                            groups="vendorbridge.group_admin"/>
+                    <button name="action_reject_vendor" string="Reject"
+                            type="object" class="btn-danger"
+                            invisible="vendor_status != 'pending'"
+                            groups="vendorbridge.group_admin"/>
+                    <button name="action_block_vendor" string="Block"
+                            type="object" class="btn-warning"
+                            invisible="vendor_status != 'approved'"
+                            groups="vendorbridge.group_admin"/>
+                    <field name="vendor_status" widget="statusbar"
+                           statusbar_visible="draft,pending,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Vendor Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Contact Information">
+                            <field name="email"/>
+                            <field name="phone"/>
+                            <field name="mobile"/>
+                            <field name="street"/>
+                            <field name="city"/>
+                            <field name="state_id"/>
+                            <field name="country_id"/>
+                        </group>
+                        <group string="Vendor Details">
+                            <field name="is_vendor" invisible="1"/>
+                            <field name="gst_number"/>
+                            <field name="vendor_category_id"/>
+                            <field name="vendor_rating"/>
+                            <field name="total_orders"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Bank Details">
+                        <group>
+                            <field name="bank_name"/>
+                            <field name="bank_account_number"/>
+                            <field name="ifsc_code"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vendor Search -->
+    <record id="view_vendor_search" model="ir.ui.view">
+        <field name="name">vendorbridge.vendor.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="email"/>
+                <field name="gst_number"/>
+                <field name="vendor_category_id"/>
+                <filter string="Approved" name="approved" domain="[('vendor_status','=','approved')]"/>
+                <filter string="Pending" name="pending" domain="[('vendor_status','=','pending')]"/>
+                <filter string="Rejected" name="rejected" domain="[('vendor_status','=','rejected')]"/>
+                <filter string="Blocked" name="blocked" domain="[('vendor_status','=','blocked')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Category" name="group_category" context="{'group_by': 'vendor_category_id'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'vendor_status'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Vendor List Action -->
+    <record id="action_vendor_list" model="ir.actions.act_window">
+        <field name="name">Vendor Management</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_vendor', '=', True)]</field>
+        <field name="context">{'default_is_vendor': True, 'search_default_approved': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_vendor_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_vendor_form')})]"/>
+        <field name="search_view_id" ref="view_vendor_search"/>
+    </record>
+</odoo>

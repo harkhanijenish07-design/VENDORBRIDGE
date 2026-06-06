@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- 1. RFQ Invitation to Vendors -->
+    <!-- ============================================================ -->
+    <record id="mail_template_rfq_invitation" model="mail.template">
+        <field name="name">VendorBridge: RFQ Invitation</field>
+        <field name="model_id" ref="model_vendorbridge_rfq"/>
+        <field name="subject">Invitation to Quote: {{ object.name }} - {{ object.title }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear Vendor,</p>
+    <p>You have been invited to submit a quotation for the following Request for Quotation:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 200px;">RFQ Number</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Title</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.title }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Category</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.category_id.name or 'N/A' }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Deadline</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.deadline }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Priority</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.priority }}</td></tr>
+    </table>
+    <p>Please login to the vendor portal to view the full RFQ details and submit your quotation before the deadline.</p>
+    <p>Best regards,<br/>{{ object.company_id.name }}</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="lang">{{ object.vendor_ids[:1].lang }}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 2. Quotation Received Notification -->
+    <!-- ============================================================ -->
+    <record id="mail_template_quotation_received" model="mail.template">
+        <field name="name">VendorBridge: Quotation Received</field>
+        <field name="model_id" ref="model_vendorbridge_quotation"/>
+        <field name="subject">Quotation Received: {{ object.name }} from {{ object.vendor_id.name }}</field>
+        <field name="email_to">{{ object.rfq_id.requestor_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear {{ object.rfq_id.requestor_id.name }},</p>
+    <p>A new quotation has been submitted for your RFQ:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 200px;">Quotation Number</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">RFQ</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.rfq_id.name }} - {{ object.rfq_id.title }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Vendor</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.vendor_id.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td><td style="padding: 8px; border: 1px solid #ddd;">₹{{ "%.2f"|format(object.total) }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Delivery Days</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.delivery_days }} days</td></tr>
+    </table>
+    <p>Please review the quotation in the VendorBridge system.</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.rfq_id.company_id.email or user.email) }}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 3. Approval Request -->
+    <!-- ============================================================ -->
+    <record id="mail_template_approval_request" model="mail.template">
+        <field name="name">VendorBridge: Approval Request</field>
+        <field name="model_id" ref="model_vendorbridge_rfq"/>
+        <field name="subject">Approval Required: {{ object.name }} - {{ object.title }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear Approver,</p>
+    <p>Your approval is required for the following procurement request:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 200px;">RFQ Number</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Title</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.title }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Estimated Total</td><td style="padding: 8px; border: 1px solid #ddd;">₹{{ "%.2f"|format(object.total_estimated) }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Requested By</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.requestor_id.name }}</td></tr>
+    </table>
+    <p>Please login to VendorBridge to review and approve/reject this request.</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 4. PO Confirmation to Vendor -->
+    <!-- ============================================================ -->
+    <record id="mail_template_po_confirmation" model="mail.template">
+        <field name="name">VendorBridge: PO Confirmation</field>
+        <field name="model_id" ref="model_vendorbridge_purchaseorder"/>
+        <field name="subject">Purchase Order Confirmed: {{ object.name }}</field>
+        <field name="email_to">{{ object.vendor_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear {{ object.vendor_id.name }},</p>
+    <p>We are pleased to confirm the following Purchase Order:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 200px;">PO Number</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">RFQ Reference</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.rfq_id.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Order Date</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.date_order }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Planned Delivery</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.date_planned }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td><td style="padding: 8px; border: 1px solid #ddd;">₹{{ "%.2f"|format(object.amount_total) }}</td></tr>
+    </table>
+    <p>Please proceed with order fulfillment as per the agreed terms.</p>
+    <p>Best regards,<br/>{{ object.company_id.name }}</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 5. Invoice Auto-Email -->
+    <!-- ============================================================ -->
+    <record id="mail_template_invoice_auto_email" model="mail.template">
+        <field name="name">VendorBridge: Invoice Notification</field>
+        <field name="model_id" ref="model_vendorbridge_invoice"/>
+        <field name="subject">Invoice {{ object.name }} from {{ object.company_id.name }}</field>
+        <field name="email_to">{{ object.vendor_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear {{ object.vendor_id.name }},</p>
+    <p>An invoice has been generated for your purchase order:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 200px;">Invoice Number</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">PO Reference</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.purchase_order_id.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Invoice Date</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.invoice_date }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Due Date</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.due_date }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Untaxed Amount</td><td style="padding: 8px; border: 1px solid #ddd;">₹{{ "%.2f"|format(object.amount_untaxed) }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">GST Type</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.gst_type }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Tax Amount</td><td style="padding: 8px; border: 1px solid #ddd;">₹{{ "%.2f"|format(object.tax_amount) }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td><td style="padding: 8px; border: 1px solid #ddd;">₹{{ "%.2f"|format(object.amount_total) }}</td></tr>
+    </table>
+    <p>Please find the invoice details in the portal. Payment is due by {{ object.due_date }}.</p>
+    <p>Best regards,<br/>{{ object.company_id.name }}</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+        <field name="report_template_ids" eval="[(4, ref('vendorbridge.action_report_invoice'))]"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 6. Vendor Signup Pending (Notify Admin) -->
+    <!-- ============================================================ -->
+    <record id="mail_template_vendor_signup_pending" model="mail.template">
+        <field name="name">VendorBridge: Vendor Registration Pending</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">New Vendor Registration: {{ object.name }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear Administrator,</p>
+    <p>A new vendor has registered on the VendorBridge portal and is pending approval:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 200px;">Vendor Name</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.name }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.email }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Phone</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.phone or 'N/A' }}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">GSTIN</td><td style="padding: 8px; border: 1px solid #ddd;">{{ object.gst_number or 'N/A' }}</td></tr>
+    </table>
+    <p>Please review and approve/reject this vendor registration in the VendorBridge system.</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 7. Vendor Approved -->
+    <!-- ============================================================ -->
+    <record id="mail_template_vendor_approved" model="mail.template">
+        <field name="name">VendorBridge: Vendor Approved</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Your Vendor Registration has been Approved</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear {{ object.name }},</p>
+    <p>Congratulations! Your vendor registration on VendorBridge has been <strong>approved</strong>.</p>
+    <p>You can now login to the vendor portal to:</p>
+    <ul>
+        <li>View assigned RFQs</li>
+        <li>Submit quotations</li>
+        <li>Track purchase orders and invoices</li>
+    </ul>
+    <p>Welcome aboard!</p>
+    <p>Best regards,<br/>The VendorBridge Team</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 8. Vendor Rejected -->
+    <!-- ============================================================ -->
+    <record id="mail_template_vendor_rejected" model="mail.template">
+        <field name="name">VendorBridge: Vendor Rejected</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Your Vendor Registration Update</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="margin: 0px; padding: 0px; font-size: 14px;">
+    <p>Dear {{ object.name }},</p>
+    <p>We regret to inform you that your vendor registration on VendorBridge has not been approved at this time.</p>
+    <p>If you believe this is an error or would like to discuss further, please contact our procurement team.</p>
+    <p>Best regards,<br/>The VendorBridge Team</p>
+</div>
+        ]]></field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
+    </record>
+
+</odoo>

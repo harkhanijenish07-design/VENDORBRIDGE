@@ -1,0 +1,262 @@
+/* ============================================================
+   VendorBridge Dashboard Styles
+   ============================================================ */
+
+/* Dashboard Kanban Card */
+.vb_dashboard_card {
+    border-radius: 8px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.vb_dashboard_card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.vb_card_title {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+}
+
+.vb_card_meta {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.8;
+}
+
+.vb_card_meta i {
+    width: 16px;
+    text-align: center;
+    color: #875A7B;
+}
+
+.vb_card_footer {
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+}
+
+/* ============================================================
+   Stat Cards (for dashboard / reports)
+   ============================================================ */
+
+.vb_stat_card {
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.vb_stat_card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.vb_stat_card .vb_stat_icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.vb_stat_card .vb_stat_value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.vb_stat_card .vb_stat_label {
+    font-size: 13px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Color variants */
+.vb_stat_card.vb_orange {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border: 1px solid #ffcc80;
+}
+.vb_stat_card.vb_orange .vb_stat_icon,
+.vb_stat_card.vb_orange .vb_stat_value {
+    color: #e65100;
+}
+
+.vb_stat_card.vb_blue {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border: 1px solid #90caf9;
+}
+.vb_stat_card.vb_blue .vb_stat_icon,
+.vb_stat_card.vb_blue .vb_stat_value {
+    color: #1565c0;
+}
+
+.vb_stat_card.vb_green {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border: 1px solid #a5d6a7;
+}
+.vb_stat_card.vb_green .vb_stat_icon,
+.vb_stat_card.vb_green .vb_stat_value {
+    color: #2e7d32;
+}
+
+.vb_stat_card.vb_purple {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    border: 1px solid #ce93d8;
+}
+.vb_stat_card.vb_purple .vb_stat_icon,
+.vb_stat_card.vb_purple .vb_stat_value {
+    color: #7b1fa2;
+}
+
+.vb_stat_card.vb_red {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    border: 1px solid #ef9a9a;
+}
+.vb_stat_card.vb_red .vb_stat_icon,
+.vb_stat_card.vb_red .vb_stat_value {
+    color: #c62828;
+}
+
+.vb_stat_card.vb_teal {
+    background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+    border: 1px solid #80cbc4;
+}
+.vb_stat_card.vb_teal .vb_stat_icon,
+.vb_stat_card.vb_teal .vb_stat_value {
+    color: #00695c;
+}
+
+/* ============================================================
+   Quotation Comparison: Lowest Price Highlight
+   ============================================================ */
+.o_list_view .o_data_row.text-success {
+    background-color: rgba(40, 167, 69, 0.08) !important;
+}
+
+/* ============================================================
+   Status Badge Overrides
+   ============================================================ */
+.o_field_badge .badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   Priority Stars
+   ============================================================ */
+.o_priority .o_priority_star {
+    color: #f0ad4e;
+}
+
+/* ============================================================
+   Kanban Board - State Columns
+   ============================================================ */
+.o_kanban_dashboard .o_kanban_group_header {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+
+/* ============================================================
+   Approval Stepper Visual
+   ============================================================ */
+.vb_approval_stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.vb_approval_step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    min-width: 120px;
+    transition: all 0.3s ease;
+}
+
+.vb_approval_step.active {
+    border-color: #875A7B;
+    background: #f3e5f5;
+}
+
+.vb_approval_step.completed {
+    border-color: #28a745;
+    background: #e8f5e9;
+}
+
+.vb_approval_step.rejected {
+    border-color: #dc3545;
+    background: #ffebee;
+}
+
+.vb_approval_step_icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.vb_approval_step_label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+}
+
+.vb_approval_connector {
+    width: 30px;
+    height: 2px;
+    background: #dee2e6;
+}
+
+.vb_approval_connector.completed {
+    background: #28a745;
+}
+
+/* ============================================================
+   Form View Enhancements
+   ============================================================ */
+.o_form_view .oe_title h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+}
+
+.o_form_view .o_notebook .nav-link {
+    font-weight: 600;
+    color: #495057;
+}
+
+.o_form_view .o_notebook .nav-link.active {
+    color: #875A7B;
+    border-bottom-color: #875A7B;
+}
+
+/* ============================================================
+   Responsive Adjustments
+   ============================================================ */
+@media (max-width: 768px) {
+    .vb_stat_card {
+        margin-bottom: 12px;
+    }
+
+    .vb_stat_card .vb_stat_value {
+        font-size: 22px;
+    }
+
+    .vb_approval_stepper {
+        flex-direction: column;
+    }
+
+    .vb_approval_connector {
+        width: 2px;
+        height: 20px;
+    }
+}

@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Vendor Signup Page -->
+    <!-- ============================================================ -->
+    <template id="vendor_signup_page" name="Vendor Signup">
+        <t t-call="portal.frontend_layout">
+            <div class="container py-5" style="font-family: 'Inter', sans-serif;">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6">
+                        <div class="card border-0 shadow-lg" style="border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, 0.95);">
+                            <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #714B67 0%, #5c3b54 100%); border-bottom: none;">
+                                <h3 class="mb-0 fw-bold" style="font-family: 'Outfit', sans-serif;">
+                                    <i class="fa fa-user-plus me-2"/>Vendor Registration
+                                </h3>
+                                <p class="mb-0 text-white-50 small mt-1">Register to join our vendor network and access RFQs</p>
+                            </div>
+                            <div class="card-body p-4 p-md-5">
+                                <t t-if="error">
+                                    <div class="alert alert-danger border-0 shadow-sm" style="border-radius: 8px;">
+                                        <i class="fa fa-exclamation-triangle me-2"/>
+                                        <t t-esc="error"/>
+                                    </div>
+                                </t>
+                                <t t-if="success">
+                                    <div class="alert alert-success border-0 shadow-sm py-4 text-center" style="border-radius: 8px;">
+                                        <i class="fa fa-check-circle mb-3 text-success" style="font-size: 3rem;"/>
+                                        <h4 class="fw-bold mb-2">Registration Successful!</h4>
+                                        <p class="mb-0 text-muted">Your account is pending review by our procurement officers. You will receive an email notification once your profile is approved.</p>
+                                    </div>
+                                </t>
+                                <form action="/vendor/signup" method="POST" t-if="not success" class="needs-validation">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary" for="name">Company / Vendor Name *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa fa-building"/></span>
+                                            <input type="text" name="name" class="form-control border-start-0 ps-1" required="required"
+                                                   placeholder="Acme Corporation" style="border-radius: 0 8px 8px 0;"/>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary" for="email">Email Address *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa fa-envelope"/></span>
+                                            <input type="email" name="email" class="form-control border-start-0 ps-1" required="required"
+                                                   placeholder="vendor@company.com" style="border-radius: 0 8px 8px 0;"/>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary" for="phone">Phone Number *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa fa-phone"/></span>
+                                            <input type="tel" name="phone" class="form-control border-start-0 ps-1" required="required"
+                                                   placeholder="+91 98765 43210" style="border-radius: 0 8px 8px 0;"/>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary" for="gst_number">GSTIN (Indian Tax ID)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa fa-file-text"/></span>
+                                            <input type="text" name="gst_number" id="gst_number"
+                                                   class="form-control border-start-0 ps-1" placeholder="e.g. 27AABCU9603R1ZM"
+                                                   maxlength="15" pattern="[0-3][0-9][A-Za-z]{5}[0-9]{4}[A-Za-z][1-9A-Za-z][Zz][0-9A-Za-z]"
+                                                   title="Enter a valid 15-character GSTIN (e.g. 27AABCU9603R1ZM)"
+                                                   style="text-transform: uppercase; border-radius: 0 8px 8px 0;"/>
+                                        </div>
+                                        <div class="form-text text-muted small mt-1.5">Format: 2-digit state code + PAN + entity + Z + check digit</div>
+                                        <div id="gstin_error" class="invalid-feedback">Invalid GSTIN format.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary" for="password">Password *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa fa-lock"/></span>
+                                            <input type="password" name="password" class="form-control border-start-0 ps-1" required="required"
+                                                   placeholder="Create a secure password" minlength="8" style="border-radius: 0 8px 8px 0;"/>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold text-secondary" for="confirm_password">Confirm Password *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa fa-shield"/></span>
+                                            <input type="password" name="confirm_password" class="form-control border-start-0 ps-1"
+                                                   required="required" placeholder="Confirm your password" style="border-radius: 0 8px 8px 0;"/>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold text-uppercase mt-2" 
+                                            style="background: linear-gradient(135deg, #017e84 0%, #009399 100%); border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(1, 126, 132, 0.25);">
+                                        <i class="fa fa-paper-plane me-2"/>Register as Vendor
+                                    </button>
+                                </form>
+                                <script type="text/javascript">
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        var gstInput = document.getElementById('gst_number');
+                                        if (gstInput) {
+                                            var gstRegex = /^[0-3][0-9][A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+                                            gstInput.addEventListener('input', function() {
+                                                var val = this.value.toUpperCase().trim();
+                                                var errorDiv = document.getElementById('gstin_error');
+                                                if (val.length === 0) {
+                                                    this.classList.remove('is-invalid', 'is-valid');
+                                                } else if (val.length === 15 &amp;&amp; gstRegex.test(val)) {
+                                                    this.classList.remove('is-invalid');
+                                                    this.classList.add('is-valid');
+                                                } else if (val.length === 15) {
+                                                    this.classList.remove('is-valid');
+                                                    this.classList.add('is-invalid');
+                                                } else {
+                                                    this.classList.remove('is-invalid', 'is-valid');
+                                                }
+                                            });
+                                        }
+                                    });
+                                </script>
+                                <div class="text-center mt-4 border-top pt-3">
+                                    <a href="/web/login" class="text-decoration-none fw-semibold" style="color: #714B67;">
+                                        Already registered? Login to Portal <i class="fa fa-angle-right ms-1"/>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Vendor Portal Dashboard -->
+    <!-- ============================================================ -->
+    <template id="vendor_portal_dashboard" name="Vendor Dashboard">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4" style="font-family: 'Inter', sans-serif;">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h2 class="mb-0 fw-bold" style="font-family: 'Outfit', sans-serif; color: #2d3748;">
+                        <i class="fa fa-th-large me-2" style="color: #714B67;"/>Vendor Portal Dashboard
+                    </h2>
+                </div>
+
+                <!-- Stat Cards Row -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #f3e5f5, #e1bee7); transition: transform 0.2s ease;">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-2" style="font-size: 2.2rem; color: #714B67;">
+                                    <i class="fa fa-file-text-o"/>
+                                </div>
+                                <h5 class="card-title fw-bold" style="color: #714B67; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Assigned RFQs
+                                </h5>
+                                <h2 class="display-5 fw-bold mb-3" style="color: #5c3b54;"><t t-esc="rfq_count"/></h2>
+                                <a href="/vendor/rfq" class="btn btn-sm text-white px-3" style="background-color: #714B67; border-radius: 6px;">
+                                    Review RFQs <i class="fa fa-arrow-right ms-1"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #e0f2f1, #b2dfdb); transition: transform 0.2s ease;">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-2" style="font-size: 2.2rem; color: #00695c;">
+                                    <i class="fa fa-shopping-cart"/>
+                                </div>
+                                <h5 class="card-title fw-bold" style="color: #00695c; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Purchase Orders
+                                </h5>
+                                <h2 class="display-5 fw-bold mb-3" style="color: #004d40;"><t t-esc="po_count"/></h2>
+                                <a href="/vendor/purchaseorder" class="btn btn-sm text-white px-3" style="background-color: #017e84; border-radius: 6px;">
+                                    View POs <i class="fa fa-arrow-right ms-1"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); transition: transform 0.2s ease;">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-2" style="font-size: 2.2rem; color: #e65100;">
+                                    <i class="fa fa-paper-plane-o"/>
+                                </div>
+                                <h5 class="card-title fw-bold" style="color: #e65100; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Quotes Submitted
+                                </h5>
+                                <h2 class="display-5 fw-bold mb-3" style="color: #bf360c;"><t t-esc="quotation_count"/></h2>
+                                <span class="badge bg-warning text-white py-2 px-3 small border-0" style="border-radius: 6px;"><i class="fa fa-check-circle me-1"/> Submitted</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Vendor RFQ List (Portal) -->
+    <!-- ============================================================ -->
+    <template id="vendor_portal_rfq_list" name="My RFQs">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4" style="font-family: 'Inter', sans-serif;">
+                <h2 class="mb-4 fw-bold" style="font-family: 'Outfit', sans-serif; color: #2d3748;">
+                    <i class="fa fa-file-text-o me-2" style="color: #714B67;"/>Assigned RFQs
+                </h2>
+                
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th class="ps-4">RFQ Number</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Deadline</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="rfqs" t-as="rfq">
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-dark"><t t-esc="rfq.name"/></td>
+                                        <td class="fw-semibold text-secondary"><t t-esc="rfq.title"/></td>
+                                        <td><t t-esc="rfq.category_id.name or '-'"/></td>
+                                        <td><span class="text-danger fw-semibold"><i class="fa fa-calendar-times-o me-1"/> <t t-esc="rfq.deadline"/></span></td>
+                                        <td>
+                                            <span t-attf-class="badge px-2.5 py-1.5 text-uppercase #{rfq.priority == 'critical' and 'bg-danger' or rfq.priority == 'high' and 'bg-warning' or 'bg-info'}">
+                                                <t t-esc="rfq.priority"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary px-2.5 py-1.5 text-uppercase"><t t-esc="rfq.state"/></span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a t-attf-href="/vendor/rfq/#{rfq.id}" class="btn btn-sm btn-outline-primary py-1 px-3" style="border-radius: 6px;">
+                                                <i class="fa fa-eye"/> View
+                                            </a>
+                                            <t t-if="rfq.state == 'sent'">
+                                                <a t-attf-href="/vendor/quotation/#{rfq.id}/submit"
+                                                   class="btn btn-sm btn-primary ms-1 py-1 px-3 text-white" style="border-radius: 6px; background-color: #017e84; border-color: #017e84;">
+                                                    <i class="fa fa-paper-plane"/> Quote
+                                                </a>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                    <t t-if="not rfqs">
+                        <div class="p-5 text-center text-muted">
+                            <i class="fa fa-folder-open-o mb-3 text-muted" style="font-size: 3rem;"/>
+                            <p class="mb-0">No Requests for Quotation assigned to you at this time.</p>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Vendor RFQ Detail (Portal) -->
+    <!-- ============================================================ -->
+    <template id="vendor_portal_rfq_detail" name="RFQ Detail">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4" style="font-family: 'Inter', sans-serif;">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom">
+                    <div>
+                        <span class="text-uppercase tracking-wider text-muted font-monospace small">RFQ Detail View</span>
+                        <h2 class="fw-bold mt-1 mb-0" style="font-family: 'Outfit', sans-serif; color: #2d3748;">
+                            <t t-esc="rfq.name"/> — <t t-esc="rfq.title"/>
+                        </h2>
+                    </div>
+                    <div class="mt-2 mt-md-0">
+                        <span class="badge bg-primary px-3 py-2 text-uppercase"><t t-esc="rfq.state"/></span>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0 fw-bold text-secondary"><i class="fa fa-info-circle me-2"/>Specifications</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <table class="table table-sm table-borderless align-middle mb-0">
+                                    <tr>
+                                        <td class="fw-bold text-muted w-25">Category:</td>
+                                        <td class="text-dark fw-semibold"><t t-esc="rfq.category_id.name or '-'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-muted w-25">Deadline:</td>
+                                        <td class="text-danger fw-semibold"><i class="fa fa-calendar-times-o me-1"/> <t t-esc="rfq.deadline"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-muted w-25">Priority:</td>
+                                        <td>
+                                            <span t-attf-class="badge text-uppercase #{rfq.priority == 'critical' and 'bg-danger' or rfq.priority == 'high' and 'bg-warning' or 'bg-info'}">
+                                                <t t-esc="rfq.priority"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0 fw-bold text-secondary"><i class="fa fa-align-left me-2"/>Description</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <p class="mb-0 text-dark" style="line-height: 1.6; white-space: pre-line;"><t t-esc="rfq.description or 'No description provided for this request.'" /></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-secondary"><i class="fa fa-list me-2"/>Requested Line Items</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th class="ps-4">Line #</th>
+                                    <th>Description / Items</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th>UOM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="rfq.line_ids" t-as="line">
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-muted"><t t-esc="line_index + 1"/></td>
+                                        <td class="fw-semibold text-dark"><t t-esc="line.description"/></td>
+                                        <td class="text-center fw-bold" style="color: #714B67;"><t t-esc="line.quantity"/></td>
+                                        <td><t t-esc="line.uom_id.name or '-'"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="d-flex mt-4">
+                    <t t-if="rfq.state == 'sent'">
+                        <a t-attf-href="/vendor/quotation/#{rfq.id}/submit"
+                           class="btn btn-primary px-4 py-2 text-white fw-bold text-uppercase" style="border-radius: 8px; background-color: #017e84; border-color: #017e84; box-shadow: 0 4px 12px rgba(1, 126, 132, 0.2);">
+                            <i class="fa fa-paper-plane me-2"/>Submit Quotation
+                        </a>
+                    </t>
+                    <a href="/vendor/rfq" class="btn btn-outline-secondary px-4 py-2 ms-2 fw-semibold" style="border-radius: 8px;">
+                        <i class="fa fa-arrow-left me-2"/>Back to RFQs
+                    </a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Vendor Quotation Submission Form (Portal) -->
+    <!-- ============================================================ -->
+    <template id="vendor_portal_quotation_submit" name="Submit Quotation">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4" style="font-family: 'Inter', sans-serif;">
+                <div class="pb-3 border-bottom mb-4">
+                    <span class="text-uppercase tracking-wider text-muted font-monospace small">Form Submission</span>
+                    <h2 class="fw-bold mt-1 mb-2" style="font-family: 'Outfit', sans-serif; color: #2d3748;">
+                        Submit Quotation for <t t-esc="rfq.name"/>
+                    </h2>
+                    <p class="text-secondary mb-0">
+                        <strong>RFQ Title:</strong> <t t-esc="rfq.title"/> <span class="mx-2">|</span> <strong>Deadline:</strong> <t t-esc="rfq.deadline"/>
+                    </p>
+                </div>
+
+                <t t-if="error">
+                    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 8px;">
+                        <i class="fa fa-exclamation-triangle me-2"/><t t-esc="error"/>
+                    </div>
+                </t>
+                <t t-if="success">
+                    <div class="alert alert-success border-0 shadow-sm py-4 text-center mb-4" style="border-radius: 8px;">
+                        <i class="fa fa-check-circle mb-3 text-success" style="font-size: 3rem;"/>
+                        <h4 class="fw-bold mb-2">Quotation Submitted Successfully!</h4>
+                        <p class="mb-3 text-muted">Your pricing proposal has been recorded. Our procurement officers will evaluate your quotation shortly.</p>
+                        <a href="/vendor/rfq" class="btn btn-outline-success px-4 py-2" style="border-radius: 8px;">Back to RFQs</a>
+                    </div>
+                </t>
+
+                <form action="" method="POST" t-if="not success" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold text-secondary"><i class="fa fa-calculator me-2"/>Line Item Pricing</h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-uppercase font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                    <tr>
+                                        <th class="ps-4">Description</th>
+                                        <th class="text-center">Qty Required</th>
+                                        <th class="w-25">Unit Price (₹) *</th>
+                                        <th class="w-25">Applicable GST % *</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="rfq.line_ids" t-as="line">
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">
+                                                <t t-esc="line.description"/>
+                                                <input type="hidden" t-attf-name="line_id_#{line.id}" t-att-value="line.id"/>
+                                            </td>
+                                            <td class="text-center fw-bold"><t t-esc="line.quantity"/></td>
+                                            <td>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">₹</span>
+                                                    <input type="number" step="0.01" min="0" required="required"
+                                                           t-attf-name="price_#{line.id}" class="form-control border-start-0 ps-1"
+                                                           placeholder="0.00" style="border-radius: 0 8px 8px 0;"/>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <select t-attf-name="gst_#{line.id}" class="form-select" style="border-radius: 8px;">
+                                                    <option value="0">0%</option>
+                                                    <option value="5">5%</option>
+                                                    <option value="12">12%</option>
+                                                    <option value="18" selected="selected">18%</option>
+                                                    <option value="28">28%</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold text-secondary"><i class="fa fa-percent me-2"/>Additional Details</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary">Discount Percentage</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" min="0" max="100"
+                                               name="discount_percent" class="form-control border-end-0"
+                                               value="0" placeholder="0.00" style="border-radius: 8px 0 0 8px;"/>
+                                        <span class="input-group-text bg-light border-start-0">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary">Est. Delivery Time (Days) *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i class="fa fa-truck"/></span>
+                                        <input type="number" min="1" name="delivery_days"
+                                               class="form-control border-start-0 ps-1" required="required"
+                                               placeholder="e.g. 7" style="border-radius: 0 8px 8px 0;"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold text-secondary"><i class="fa fa-sticky-note-o me-2"/>Notes &amp; Supporting Documents</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-secondary">Comments / Additional Terms</label>
+                                <textarea name="notes" class="form-control" rows="3"
+                                          placeholder="Enter any additional conditions, payment terms, or delivery specs..." style="border-radius: 8px;"/>
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-semibold text-secondary">
+                                    <i class="fa fa-paperclip me-1"/>Upload Supporting Documents (PDF, Excel, Zip, Images)
+                                </label>
+                                <input type="file" name="attachments" class="form-control"
+                                       multiple="multiple" style="border-radius: 8px;"
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip"/>
+                                <div class="form-text text-muted mt-2">
+                                    <i class="fa fa-info-circle me-1"/> Upload quotes breakdowns, specs sheets, and certifications. Max 10 MB per file.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex mt-4">
+                        <button type="submit" class="btn btn-primary px-4 py-2 text-white fw-bold text-uppercase" style="border-radius: 8px; background-color: #017e84; border-color: #017e84; box-shadow: 0 4px 12px rgba(1, 126, 132, 0.2);">
+                            <i class="fa fa-check me-2"/>Submit Quotation
+                        </button>
+                        <a t-attf-href="/vendor/rfq/#{rfq.id}" class="btn btn-outline-secondary px-4 py-2 ms-2 fw-semibold" style="border-radius: 8px;">
+                            <i class="fa fa-arrow-left me-2"/>Back to RFQ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Vendor Purchase Orders List (Portal) -->
+    <!-- ============================================================ -->
+    <template id="vendor_portal_po_list" name="My Purchase Orders">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4" style="font-family: 'Inter', sans-serif;">
+                <h2 class="mb-4 fw-bold" style="font-family: 'Outfit', sans-serif; color: #2d3748;">
+                    <i class="fa fa-shopping-cart me-2" style="color: #714B67;"/>My Purchase Orders
+                </h2>
+                
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th class="ps-4">PO Number</th>
+                                    <th>RFQ Link</th>
+                                    <th>Order Date</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="purchase_orders" t-as="po">
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-dark"><t t-esc="po.name"/></td>
+                                        <td class="fw-semibold text-secondary"><t t-esc="po.rfq_id.name"/></td>
+                                        <td><i class="fa fa-calendar-o me-1.5 text-muted"/> <t t-esc="po.date_order"/></td>
+                                        <td class="fw-bold text-success">₹<t t-esc="'%.2f' % po.amount_total"/></td>
+                                        <td>
+                                            <span t-attf-class="badge px-2.5 py-1.5 text-uppercase #{po.state == 'done' and 'bg-success' or po.state == 'confirmed' and 'bg-info' or 'bg-secondary'}">
+                                                <t t-esc="po.state"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                    <t t-if="not purchase_orders">
+                        <div class="p-5 text-center text-muted">
+                            <i class="fa fa-inbox mb-3 text-muted" style="font-size: 3rem;"/>
+                            <p class="mb-0">No purchase orders received yet.</p>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

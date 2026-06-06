@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- RFQ Sequence -->
+    <record id="seq_vendorbridge_rfq" model="ir.sequence">
+        <field name="name">VendorBridge RFQ Sequence</field>
+        <field name="code">vendorbridge.rfq</field>
+        <field name="prefix">RFQ/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+        <field name="number_next">1</field>
+    </record>
+
+    <!-- Quotation Sequence -->
+    <record id="seq_vendorbridge_quotation" model="ir.sequence">
+        <field name="name">VendorBridge Quotation Sequence</field>
+        <field name="code">vendorbridge.quotation</field>
+        <field name="prefix">VQ/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+        <field name="number_next">1</field>
+    </record>
+
+    <!-- Purchase Order Sequence -->
+    <record id="seq_vendorbridge_po" model="ir.sequence">
+        <field name="name">VendorBridge Purchase Order Sequence</field>
+        <field name="code">vendorbridge.purchaseorder</field>
+        <field name="prefix">PO/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+        <field name="number_next">1</field>
+    </record>
+
+    <!-- Invoice Sequence -->
+    <record id="seq_vendorbridge_invoice" model="ir.sequence">
+        <field name="name">VendorBridge Invoice Sequence</field>
+        <field name="code">vendorbridge.invoice</field>
+        <field name="prefix">INV/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+        <field name="number_next">1</field>
+    </record>
+</odoo>

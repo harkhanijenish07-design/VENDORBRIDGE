@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============================================================ -->
+        <!-- Settings: Approval Thresholds -->
+        <!-- ============================================================ -->
+        <record id="vendorbridge_threshold_1" model="ir.config_parameter">
+            <field name="key">vendorbridge.threshold_1</field>
+            <field name="value">50000</field>
+        </record>
+        <record id="vendorbridge_threshold_2" model="ir.config_parameter">
+            <field name="key">vendorbridge.threshold_2</field>
+            <field name="value">200000</field>
+        </record>
+        <record id="vendorbridge_default_gst" model="ir.config_parameter">
+            <field name="key">vendorbridge.default_gst</field>
+            <field name="value">18</field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Vendor Categories -->
+        <!-- ============================================================ -->
+        <record id="vendor_category_it_hardware" model="vendorbridge.vendor.category">
+            <field name="name">IT Hardware</field>
+            <field name="description">Computers, servers, networking equipment, peripherals</field>
+        </record>
+
+        <record id="vendor_category_furniture" model="vendorbridge.vendor.category">
+            <field name="name">Furniture</field>
+            <field name="description">Office furniture, desks, chairs, cabinets</field>
+        </record>
+
+        <record id="vendor_category_stationery" model="vendorbridge.vendor.category">
+            <field name="name">Stationery</field>
+            <field name="description">Office supplies, paper, pens, printing materials</field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Company State (Maharashtra - for GST intra/inter state logic) -->
+        <!-- ============================================================ -->
+        <record id="base.main_company" model="res.company">
+            <field name="state_id" ref="base.state_in_mh"/>
+            <field name="country_id" ref="base.in"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Demo Vendors -->
+        <!-- ============================================================ -->
+        <record id="vendor_infra_supplies" model="res.partner">
+            <field name="name">Infra Supplies Pvt Ltd</field>
+            <field name="email">infra@example.com</field>
+            <field name="phone">+91-22-12345678</field>
+            <field name="is_vendor" eval="True"/>
+            <field name="vendor_status">approved</field>
+            <field name="gst_number">27AABCI1234A1Z5</field>
+            <field name="vendor_category_id" ref="vendor_category_furniture"/>
+            <field name="vendor_rating">4.2</field>
+            <field name="state_id" ref="base.state_in_mh"/>
+            <field name="country_id" ref="base.in"/>
+            <field name="bank_name">HDFC Bank</field>
+            <field name="bank_account_number">12345678901234</field>
+            <field name="ifsc_code">HDFC0001234</field>
+        </record>
+
+        <record id="vendor_techstar" model="res.partner">
+            <field name="name">TechStar Ltd</field>
+            <field name="email">techstar@example.com</field>
+            <field name="phone">+91-80-87654321</field>
+            <field name="is_vendor" eval="True"/>
+            <field name="vendor_status">approved</field>
+            <field name="gst_number">29AABCT5678B2Z3</field>
+            <field name="vendor_category_id" ref="vendor_category_it_hardware"/>
+            <field name="vendor_rating">4.5</field>
+            <field name="state_id" ref="base.state_in_ka"/>
+            <field name="country_id" ref="base.in"/>
+            <field name="bank_name">ICICI Bank</field>
+            <field name="bank_account_number">98765432109876</field>
+            <field name="ifsc_code">ICIC0005678</field>
+        </record>
+
+        <record id="vendor_packing_transport" model="res.partner">
+            <field name="name">Packing Transport</field>
+            <field name="email">packing@example.com</field>
+            <field name="phone">+91-22-55556666</field>
+            <field name="is_vendor" eval="True"/>
+            <field name="vendor_status">approved</field>
+            <field name="gst_number">27AABCP9012C3Z1</field>
+            <field name="vendor_category_id" ref="vendor_category_stationery"/>
+            <field name="vendor_rating">3.8</field>
+            <field name="state_id" ref="base.state_in_mh"/>
+            <field name="country_id" ref="base.in"/>
+            <field name="bank_name">SBI</field>
+            <field name="bank_account_number">11223344556677</field>
+            <field name="ifsc_code">SBIN0009012</field>
+        </record>
+
+        <record id="vendor_printlog" model="res.partner">
+            <field name="name">PrintLog</field>
+            <field name="email">printlog@example.com</field>
+            <field name="phone">+91-11-33334444</field>
+            <field name="is_vendor" eval="True"/>
+            <field name="vendor_status">approved</field>
+            <field name="gst_number">07AABCD3456D4Z9</field>
+            <field name="vendor_category_id" ref="vendor_category_stationery"/>
+            <field name="vendor_rating">4.0</field>
+            <field name="state_id" ref="base.state_in_dl"/>
+            <field name="country_id" ref="base.in"/>
+            <field name="bank_name">Axis Bank</field>
+            <field name="bank_account_number">55667788990011</field>
+            <field name="ifsc_code">UTIB0003456</field>
+        </record>
+
+        <record id="vendor_furnico" model="res.partner">
+            <field name="name">FurniCo</field>
+            <field name="email">furnico@example.com</field>
+            <field name="phone">+91-79-77778888</field>
+            <field name="is_vendor" eval="True"/>
+            <field name="vendor_status">approved</field>
+            <field name="gst_number">24AABCF7890E5Z7</field>
+            <field name="vendor_category_id" ref="vendor_category_furniture"/>
+            <field name="vendor_rating">3.5</field>
+            <field name="state_id" ref="base.state_in_gj"/>
+            <field name="country_id" ref="base.in"/>
+            <field name="bank_name">Kotak Mahindra Bank</field>
+            <field name="bank_account_number">99887766554433</field>
+            <field name="ifsc_code">KKBK0007890</field>
+        </record>
+
+        <!-- Vendor pending approval (for demo) -->
+        <record id="vendor_pending_demo" model="res.partner">
+            <field name="name">NewVendor Pvt Ltd</field>
+            <field name="email">newvendor@example.com</field>
+            <field name="phone">+91-40-11112222</field>
+            <field name="is_vendor" eval="True"/>
+            <field name="vendor_status">pending</field>
+            <field name="gst_number">36AABCN1111F6Z2</field>
+            <field name="vendor_category_id" ref="vendor_category_it_hardware"/>
+            <field name="state_id" ref="base.state_in_ka"/>
+            <field name="country_id" ref="base.in"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Demo RFQ 1: Office Furniture Q2 (~₹40,000 = 1 approver) -->
+        <!-- ============================================================ -->
+        <record id="demo_rfq_1" model="vendorbridge.rfq">
+            <field name="title">Office Furniture Q2</field>
+            <field name="description">Procurement of office furniture for Q2 expansion - desks, chairs, and filing cabinets.</field>
+            <field name="category_id" ref="vendor_category_furniture"/>
+            <field name="deadline">2026-07-15</field>
+            <field name="priority">normal</field>
+            <field name="state">closed</field>
+            <field name="vendor_ids" eval="[(6, 0, [ref('vendor_infra_supplies'), ref('vendor_packing_transport'), ref('vendor_furnico')])]"/>
+        </record>
+
+        <!-- RFQ 1 Lines -->
+        <record id="demo_rfq_1_line_1" model="vendorbridge.rfq.line">
+            <field name="rfq_id" ref="demo_rfq_1"/>
+            <field name="description">Executive Office Desk (150x75cm)</field>
+            <field name="quantity">5</field>
+        </record>
+
+        <record id="demo_rfq_1_line_2" model="vendorbridge.rfq.line">
+            <field name="rfq_id" ref="demo_rfq_1"/>
+            <field name="description">Ergonomic Office Chair</field>
+            <field name="quantity">10</field>
+        </record>
+
+        <record id="demo_rfq_1_line_3" model="vendorbridge.rfq.line">
+            <field name="rfq_id" ref="demo_rfq_1"/>
+            <field name="description">Filing Cabinet (4-Drawer)</field>
+            <field name="quantity">3</field>
+        </record>
+
+        <!-- RFQ 1 Quotations -->
+        <record id="demo_quot_1_v1" model="vendorbridge.quotation">
+            <field name="rfq_id" ref="demo_rfq_1"/>
+            <field name="vendor_id" ref="vendor_infra_supplies"/>
+            <field name="state">selected</field>
+            <field name="discount_percent">5.0</field>
+            <field name="delivery_days">7</field>
+            <field name="is_selected" eval="True"/>
+            <field name="notes">Best price guaranteed. Free delivery within Mumbai.</field>
+        </record>
+
+        <record id="demo_quot_1_v1_l1" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v1"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_1"/>
+            <field name="description">Executive Office Desk (150x75cm)</field>
+            <field name="quantity">5</field>
+            <field name="unit_price">3500</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v1_l2" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v1"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_2"/>
+            <field name="description">Ergonomic Office Chair</field>
+            <field name="quantity">10</field>
+            <field name="unit_price">1200</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v1_l3" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v1"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_3"/>
+            <field name="description">Filing Cabinet (4-Drawer)</field>
+            <field name="quantity">3</field>
+            <field name="unit_price">2800</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v2" model="vendorbridge.quotation">
+            <field name="rfq_id" ref="demo_rfq_1"/>
+            <field name="vendor_id" ref="vendor_packing_transport"/>
+            <field name="state">rejected</field>
+            <field name="discount_percent">2.0</field>
+            <field name="delivery_days">14</field>
+            <field name="is_selected" eval="False"/>
+        </record>
+
+        <record id="demo_quot_1_v2_l1" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v2"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_1"/>
+            <field name="description">Executive Office Desk (150x75cm)</field>
+            <field name="quantity">5</field>
+            <field name="unit_price">4000</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v2_l2" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v2"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_2"/>
+            <field name="description">Ergonomic Office Chair</field>
+            <field name="quantity">10</field>
+            <field name="unit_price">1500</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v2_l3" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v2"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_3"/>
+            <field name="description">Filing Cabinet (4-Drawer)</field>
+            <field name="quantity">3</field>
+            <field name="unit_price">3200</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v3" model="vendorbridge.quotation">
+            <field name="rfq_id" ref="demo_rfq_1"/>
+            <field name="vendor_id" ref="vendor_furnico"/>
+            <field name="state">rejected</field>
+            <field name="discount_percent">3.0</field>
+            <field name="delivery_days">10</field>
+            <field name="is_selected" eval="False"/>
+        </record>
+
+        <record id="demo_quot_1_v3_l1" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v3"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_1"/>
+            <field name="description">Executive Office Desk (150x75cm)</field>
+            <field name="quantity">5</field>
+            <field name="unit_price">3800</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v3_l2" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v3"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_2"/>
+            <field name="description">Ergonomic Office Chair</field>
+            <field name="quantity">10</field>
+            <field name="unit_price">1350</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_1_v3_l3" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_1_v3"/>
+            <field name="rfq_line_id" ref="demo_rfq_1_line_3"/>
+            <field name="description">Filing Cabinet (4-Drawer)</field>
+            <field name="quantity">3</field>
+            <field name="unit_price">3000</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Demo RFQ 2: IT Equipment 2026 (~₹1,80,000 = 2 approvers) -->
+        <!-- ============================================================ -->
+        <record id="demo_rfq_2" model="vendorbridge.rfq">
+            <field name="title">IT Equipment 2026</field>
+            <field name="description">Annual IT hardware procurement - laptops, monitors, and networking equipment.</field>
+            <field name="category_id" ref="vendor_category_it_hardware"/>
+            <field name="deadline">2026-08-01</field>
+            <field name="priority">high</field>
+            <field name="state">sent</field>
+            <field name="vendor_ids" eval="[(6, 0, [ref('vendor_techstar'), ref('vendor_printlog')])]"/>
+        </record>
+
+        <record id="demo_rfq_2_line_1" model="vendorbridge.rfq.line">
+            <field name="rfq_id" ref="demo_rfq_2"/>
+            <field name="description">Business Laptop (i7, 16GB, 512GB SSD)</field>
+            <field name="quantity">3</field>
+        </record>
+
+        <record id="demo_rfq_2_line_2" model="vendorbridge.rfq.line">
+            <field name="rfq_id" ref="demo_rfq_2"/>
+            <field name="description">27-inch 4K Monitor</field>
+            <field name="quantity">5</field>
+        </record>
+
+        <record id="demo_rfq_2_line_3" model="vendorbridge.rfq.line">
+            <field name="rfq_id" ref="demo_rfq_2"/>
+            <field name="description">Managed Network Switch (24-port)</field>
+            <field name="quantity">2</field>
+        </record>
+
+        <!-- RFQ 2 Quotations -->
+        <record id="demo_quot_2_v1" model="vendorbridge.quotation">
+            <field name="rfq_id" ref="demo_rfq_2"/>
+            <field name="vendor_id" ref="vendor_techstar"/>
+            <field name="state">submitted</field>
+            <field name="discount_percent">3.0</field>
+            <field name="delivery_days">10</field>
+            <field name="notes">Premium brands with 3-year warranty included.</field>
+        </record>
+
+        <record id="demo_quot_2_v1_l1" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_2_v1"/>
+            <field name="rfq_line_id" ref="demo_rfq_2_line_1"/>
+            <field name="description">Business Laptop (i7, 16GB, 512GB SSD)</field>
+            <field name="quantity">3</field>
+            <field name="unit_price">45000</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_2_v1_l2" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_2_v1"/>
+            <field name="rfq_line_id" ref="demo_rfq_2_line_2"/>
+            <field name="description">27-inch 4K Monitor</field>
+            <field name="quantity">5</field>
+            <field name="unit_price">22000</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_2_v1_l3" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_2_v1"/>
+            <field name="rfq_line_id" ref="demo_rfq_2_line_3"/>
+            <field name="description">Managed Network Switch (24-port)</field>
+            <field name="quantity">2</field>
+            <field name="unit_price">15000</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_2_v2" model="vendorbridge.quotation">
+            <field name="rfq_id" ref="demo_rfq_2"/>
+            <field name="vendor_id" ref="vendor_printlog"/>
+            <field name="state">submitted</field>
+            <field name="discount_percent">5.0</field>
+            <field name="delivery_days">15</field>
+            <field name="notes">Budget-friendly options with 1-year warranty.</field>
+        </record>
+
+        <record id="demo_quot_2_v2_l1" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_2_v2"/>
+            <field name="rfq_line_id" ref="demo_rfq_2_line_1"/>
+            <field name="description">Business Laptop (i7, 16GB, 512GB SSD)</field>
+            <field name="quantity">3</field>
+            <field name="unit_price">42000</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_2_v2_l2" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_2_v2"/>
+            <field name="rfq_line_id" ref="demo_rfq_2_line_2"/>
+            <field name="description">27-inch 4K Monitor</field>
+            <field name="quantity">5</field>
+            <field name="unit_price">19500</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <record id="demo_quot_2_v2_l3" model="vendorbridge.quotation.line">
+            <field name="quotation_id" ref="demo_quot_2_v2"/>
+            <field name="rfq_line_id" ref="demo_rfq_2_line_3"/>
+            <field name="description">Managed Network Switch (24-port)</field>
+            <field name="quantity">2</field>
+            <field name="unit_price">13500</field>
+            <field name="gst_rate">18</field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Demo Activity Logs -->
+        <!-- ============================================================ -->
+        <record id="demo_log_1" model="vendorbridge.activitylog">
+            <field name="model_name">vendorbridge.rfq</field>
+            <field name="record_id" eval="ref('demo_rfq_1')"/>
+            <field name="record_name">Office Furniture Q2</field>
+            <field name="action">RFQ Created</field>
+            <field name="category">rfq</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="details">RFQ created for Office Furniture Q2 procurement</field>
+        </record>
+
+        <record id="demo_log_2" model="vendorbridge.activitylog">
+            <field name="model_name">vendorbridge.rfq</field>
+            <field name="record_id" eval="ref('demo_rfq_1')"/>
+            <field name="record_name">Office Furniture Q2</field>
+            <field name="action">RFQ Sent to Vendors</field>
+            <field name="category">rfq</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="details">Sent to: Infra Supplies Pvt Ltd, Packing Transport, FurniCo</field>
+        </record>
+
+        <record id="demo_log_3" model="vendorbridge.activitylog">
+            <field name="model_name">vendorbridge.quotation</field>
+            <field name="record_id" eval="ref('demo_quot_1_v1')"/>
+            <field name="record_name">Infra Supplies Quote</field>
+            <field name="action">Quotation Submitted</field>
+            <field name="category">quotation</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="details">Quotation submitted by Infra Supplies Pvt Ltd - Total: ₹37,525</field>
+        </record>
+
+        <record id="demo_log_4" model="vendorbridge.activitylog">
+            <field name="model_name">vendorbridge.quotation</field>
+            <field name="record_id" eval="ref('demo_quot_1_v1')"/>
+            <field name="record_name">Infra Supplies Quote</field>
+            <field name="action">Quotation Selected</field>
+            <field name="category">quotation</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="details">Quotation from Infra Supplies Pvt Ltd selected as winner</field>
+        </record>
+
+        <record id="demo_log_5" model="vendorbridge.activitylog">
+            <field name="model_name">vendorbridge.rfq</field>
+            <field name="record_id" eval="ref('demo_rfq_2')"/>
+            <field name="record_name">IT Equipment 2026</field>
+            <field name="action">RFQ Created</field>
+            <field name="category">rfq</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="details">RFQ created for annual IT hardware procurement</field>
+        </record>
+
+        <record id="demo_log_6" model="vendorbridge.activitylog">
+            <field name="model_name">res.partner</field>
+            <field name="record_id" eval="ref('vendor_pending_demo')"/>
+            <field name="record_name">NewVendor Pvt Ltd</field>
+            <field name="action">Vendor Registered</field>
+            <field name="category">vendor</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="details">New vendor registered, pending approval</field>
+        </record>
+
+    </data>
+</odoo>

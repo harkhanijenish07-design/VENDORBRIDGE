@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Quotation Comparison - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Quotation Comparison Matrix</h2>
+    <p>Compare submitted proposals side-by-side for RFQ-{{ "%04d"|format(rfq.id) }}: {{ rfq.title }}</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="/rfqs/{{ rfq.id }}" class="btn btn-outline-secondary btn-sm py-2 px-3"><i class="bi bi-arrow-left me-1"></i> Back to RFQ</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Comparison Matrix -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-grid-3x3-gap me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Proposal Comparison Grid</h5>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start ps-4" style="min-width: 200px;">Comparison Factors</th>
+                            {% for bid in bids %}
+                                <th style="min-width: 250px;" class="{% if bid.id == lowest_bid_id %}border border-success bg-light-success{% endif %}">
+                                    {% if bid.id == lowest_bid_id %}
+                                        <div class="badge bg-success mb-2"><i class="bi bi-award me-1"></i> Lowest Quote</div>
+                                    {% endif %}
+                                    <div class="fs-6 fw-bold text-dark">{{ bid.vendor.company_name }}</div>
+                                    <div class="small text-muted">{{ bid.vendor.contact_name }}</div>
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">Untaxed Subtotal</td>
+                            {% for bid in bids %}
+                                <td class="fw-semibold text-secondary">₹{{ "{:,.2f}".format(bid.amount) }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">GST / Tax Amount</td>
+                            {% for bid in bids %}
+                                <td class="text-muted">₹{{ "{:,.2f}".format(bid.tax_amount) }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% if bids[0].discount_percent is defined %}
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">Discount Applied</td>
+                            {% for bid in bids %}
+                                <td class="text-danger fw-semibold">
+                                    {% if bid.discount_percent > 0 %}
+                                        {{ bid.discount_percent }}% (-₹{{ "{:,.2f}".format(bid.discount_amount) }})
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
+                        <tr class="table-group-divider">
+                            <td class="text-start ps-4 fw-bold text-dark">Grand Total (Incl. Tax)</td>
+                            {% for bid in bids %}
+                                <td class="{% if bid.id == lowest_bid_id %}bg-light-success text-success fw-bold fs-5{% else %}fw-bold text-dark fs-6{% endif %}">
+                                    ₹{{ "{:,.2f}".format(bid.total_amount) }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">Delivery Timeline</td>
+                            {% for bid in bids %}
+                                <td class="fw-medium text-secondary">
+                                    <i class="bi bi-truck me-1"></i> {{ bid.delivery_days }} days
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">Supplier Rating</td>
+                            {% for bid in bids %}
+                                <td>
+                                    <span class="text-warning"><i class="bi bi-star-fill"></i></span>
+                                    <span class="fw-bold">{{ "%.1f"|format(bid.vendor.rating) }}</span> / 5.0
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">Payment Terms / Remarks</td>
+                            {% for bid in bids %}
+                                <td class="small text-muted text-start p-3" style="max-width: 250px;">
+                                    {{ bid.notes or 'Standard payment terms apply.' }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="text-start ps-4 fw-semibold">Action</td>
+                            {% for bid in bids %}
+                                <td class="p-3">
+                                    {% if rfq.status == 'open' or rfq.status == 'compared' %}
+                                        <form action="/api/quotations/{{ bid.id }}/select" method="POST">
+                                            <button type="submit" class="btn btn-sm {% if bid.id == lowest_bid_id %}btn-success{% else %}btn-outline-primary{% endif %} py-1.5 px-3">
+                                                Select & Start Approval
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        {% if bid.is_selected %}
+                                            <span class="badge bg-success py-2 px-3"><i class="bi bi-check-circle me-1"></i> Selected Bid</span>
+                                        {% else %}
+                                            <span class="text-muted small">Not Selected</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+            <div>
+                <strong>Recommendation:</strong> The matrix highlights the lowest cost quotation in green. Selecting a quotation locks the bid price and initiates the internal department approval workflow steps.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

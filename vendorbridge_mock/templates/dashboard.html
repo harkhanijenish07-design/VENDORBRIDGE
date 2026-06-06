@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - VendorBridge{% endblock %}
+
+{% block content %}
+<!-- Page Header / Welcome Banner -->
+<div class="page-header mb-4">
+    <h2>Welcome back, Procurement Officer</h2>
+    <p>Today's Overview & Procurement Operations</p>
+</div>
+
+<!-- 4 KPI Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Active RFQs</div>
+                <div class="stat-icon text-teal bg-teal-light" style="color: var(--secondary-teal); background-color: var(--secondary-teal-light);">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+            </div>
+            <div class="stat-value text-teal" style="color: var(--secondary-teal);">{{ active_rfqs }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-arrow-up-short text-success"></i> Open for bids</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Pending Approvals</div>
+                <div class="stat-icon text-warning bg-warning-light" style="background-color: #fef3c7;">
+                    <i class="bi bi-check2-square"></i>
+                </div>
+            </div>
+            <div class="stat-value text-warning" style="color: #d97706 !important;">{{ pending_approvals }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-exclamation-circle"></i> Needs review</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Total Spend</div>
+                <div class="stat-icon text-purple bg-purple-light" style="color: var(--primary-purple); background-color: var(--primary-purple-light);">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+            </div>
+            <div class="stat-value text-purple" style="color: var(--primary-purple);">₹{{ "{:,.2f}".format(total_spend) }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-calendar-event"></i> Current fiscal year</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Active Vendors</div>
+                <div class="stat-icon text-success bg-success-light" style="color: #0f9f90; background-color: #e6f5f5;">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+            <div class="stat-value text-success" style="color: #0f9f90 !important;">{{ active_vendors }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-check-circle text-success"></i> Fully verified</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Chart Panel -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-secondary fw-bold" style="font-size: 1rem;"><i class="bi bi-graph-up me-2"></i>Spending Trends (Last 6 Months)</h5>
+            </div>
+            <div class="card-body p-4 d-flex align-items-center">
+                <canvas id="spendChart" style="max-height: 280px; width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-secondary fw-bold" style="font-size: 1rem;"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-grid gap-3">
+                    <a href="/rfqs/new" class="btn btn-primary py-3 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-plus-circle"></i> Create New RFQ
+                    </a>
+                    <a href="/vendors" class="btn btn-outline-primary py-3 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-people"></i> Manage Vendors
+                    </a>
+                    <a href="/approvals" class="btn btn-outline-secondary py-3 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-check2-square"></i> Review Approvals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Purchase Orders -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 text-secondary fw-bold" style="font-size: 1rem;"><i class="bi bi-cart-check me-2"></i>Recent Purchase Orders</h5>
+                <a href="/purchase-orders" class="text-decoration-none small" style="color: var(--secondary-teal);">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">PO Number</th>
+                                <th>Vendor</th>
+                                <th>Order Date</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_pos %}
+                                {% for po in recent_pos %}
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-dark">PO-{{ "%04d"|format(po.id) }}</td>
+                                    <td class="fw-medium text-secondary">{{ po.vendor.company_name }}</td>
+                                    <td>{{ po.date_order }}</td>
+                                    <td class="fw-semibold text-dark">₹{{ "{:,.2f}".format(po.amount_total) }}</td>
+                                    <td>
+                                        <span class="badge {% if po.status == 'done' %}bg-success{% elif po.status == 'confirmed' %}bg-purple{% elif po.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ po.status | title }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="/purchase-orders/{{ po.id }}" class="btn btn-sm btn-outline-primary py-1 px-3">
+                                            Open
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center p-4 text-muted">No Purchase Orders found.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('spendChart').getContext('2d');
+        
+        // Dynamic chart data passed from backend
+        const chartLabels = {{ chart_labels | tojson }};
+        const chartData = {{ chart_data | tojson }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Monthly spend (₹)',
+                    data: chartData,
+                    borderColor: '#714B67',
+                    backgroundColor: 'rgba(113, 75, 103, 0.08)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#017e84',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 7,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.03)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            },
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

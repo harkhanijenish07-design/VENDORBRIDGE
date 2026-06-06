@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}PO & Invoice - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Purchase Order & Invoice</h2>
+    <p>Auto-generated procurement document following approval</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <a href="/purchase-orders" class="btn btn-outline-secondary btn-sm py-2 px-3"><i class="bi bi-arrow-left me-1"></i> Back to POs</a>
+        
+        {% if invoice and invoice.status != 'paid' %}
+            <form action="/api/purchase-orders/{{ po.id }}/pay" method="POST">
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Mark as Paid</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Status Tracker Stepper -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-4 px-5">
+                <div class="stepper" id="po-stepper">
+                    <div class="stepper-step done">
+                        <div class="stepper-circle">1</div>
+                        <span>PO Created</span>
+                    </div>
+                    <div class="stepper-line done"></div>
+                    <div class="stepper-step done">
+                        <div class="stepper-circle">2</div>
+                        <span>Approved</span>
+                    </div>
+                    <div class="stepper-line done"></div>
+                    <div class="stepper-step {% if invoice %}done{% else %}active{% endif %}">
+                        <div class="stepper-circle">3</div>
+                        <span>Invoiced</span>
+                    </div>
+                    <div class="stepper-line {% if invoice and invoice.status == 'paid' %}done{% endif %}"></div>
+                    <div class="stepper-step {% if invoice and invoice.status == 'paid' %}done{% elif invoice and invoice.status != 'paid' %}active{% endif %}">
+                        <div class="stepper-circle">4</div>
+                        <span>Paid</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Invoice Layout -->
+    <div class="col-lg-12">
+        <div class="card border-0 shadow-sm overflow-hidden" style="background-color: white;">
+            <!-- Header Banner -->
+            <div class="bg-purple text-white p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--primary-purple) 0%, #4a2e43 100%) !important;">
+                <div>
+                    <h3 class="fw-bold mb-0 text-white">PURCHASE ORDER</h3>
+                    <div class="small opacity-75">No: PO-{{ "%04d"|format(po.id) }} | Date: {{ po.date_order }}</div>
+                </div>
+                <div class="text-end">
+                    <h4 class="fw-bold mb-0 text-white">{% if invoice %}INVOICE{% else %}DRAFT{% endif %}</h4>
+                    <div class="small opacity-75">
+                        {% if invoice %}No: INV-{{ "%04d"|format(invoice.id) }} | Status: {{ invoice.status | title }}{% else %}Awaiting Invoice Generation{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <!-- Bill To / Ship To vs Vendor Details -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <h6 class="text-uppercase text-muted fw-bold mb-3 small">Bill To (Procurement Org)</h6>
+                        <div class="fw-bold text-dark fs-6">VendorBridge Ltd</div>
+                        <div class="text-muted small">
+                            101 Corporate Sourcing Tower,<br>
+                            Bandra Kurla Complex, Mumbai, MH - 400051<br>
+                            <strong>GSTIN:</strong> 27AABCV8901Z2Z9
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <h6 class="text-uppercase text-muted fw-bold mb-3 small">Vendor Details</h6>
+                        <div class="fw-bold text-dark fs-6">{{ po.vendor.company_name }}</div>
+                        <div class="text-muted small">
+                            {{ po.vendor.address }}<br>
+                            <strong>Contact:</strong> {{ po.vendor.contact_name }} ({{ po.vendor.phone }})<br>
+                            <strong>Email:</strong> {{ po.vendor.email }}<br>
+                            <strong>GSTIN:</strong> <span class="text-uppercase">{{ po.vendor.gst_number }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PO & Invoice Metadata -->
+                <div class="row g-4 mb-4 p-3 bg-light rounded border">
+                    <div class="col-md-3">
+                        <div class="text-muted small">Payment Terms</div>
+                        <div class="fw-semibold text-dark">Net 30 Days</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Delivery Date</div>
+                        <div class="fw-semibold text-dark">{{ po.date_order }} (Est. {{ po.bid.delivery_days }} Days)</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Invoice Date</div>
+                        <div class="fw-semibold text-dark">{{ invoice.invoice_date if invoice else 'N/A' }}</div>
+                    </div>
+                    <div class="col-md-3 text-md-end">
+                        <div class="text-muted small">Due Date</div>
+                        <div class="fw-semibold text-danger">{{ invoice.due_date if invoice else 'N/A' }}</div>
+                    </div>
+                </div>
+
+                <!-- Line Items Table -->
+                <h6 class="text-uppercase text-muted fw-bold mb-3 small">Order Items Details</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">#</th>
+                                <th>Item Description</th>
+                                <th style="width: 100px;" class="text-center">Qty</th>
+                                <th style="width: 100px;" class="text-center">UOM</th>
+                                <th style="width: 150px;" class="text-end">Unit Price</th>
+                                <th style="width: 150px;" class="text-end">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in po.bid.line_ids %}
+                            <tr>
+                                <td class="ps-4 text-muted">{{ loop.index }}</td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ line.rfq_line.description }}</div>
+                                </td>
+                                <td class="text-center">{{ line.rfq_line.quantity }}</td>
+                                <td class="text-center text-muted">{{ line.rfq_line.uom }}</td>
+                                <td class="text-end">₹{{ "{:,.2f}".format(line.unit_price) }}</td>
+                                <td class="text-end fw-semibold">₹{{ "{:,.2f}".format(line.subtotal) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary Totals -->
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Subtotal (Untaxed):</div>
+                            <div class="col-6 text-end fw-semibold text-dark">₹{{ "{:,.2f}".format(po.amount_untaxed) }}</div>
+                        </div>
+
+                        <!-- Tax Breakdown (CGST/SGST vs IGST) -->
+                        {% if invoice %}
+                            {% if invoice.gst_type == 'cgst_sgst' %}
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">CGST (9%):</div>
+                                <div class="col-6 text-end text-muted">₹{{ "{:,.2f}".format(invoice.cgst_amount) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">SGST (9%):</div>
+                                <div class="col-6 text-end text-muted">₹{{ "{:,.2f}".format(invoice.sgst_amount) }}</div>
+                            </div>
+                            {% else %}
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">IGST (18%):</div>
+                                <div class="col-6 text-end text-muted">₹{{ "{:,.2f}".format(invoice.igst_amount) }}</div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Est. GST (18%):</div>
+                                <div class="col-6 text-end text-muted">₹{{ "{:,.2f}".format(po.amount_tax) }}</div>
+                            </div>
+                        {% endif %}
+
+                        {% if po.bid.discount_amount > 0 %}
+                        <div class="row mb-2 text-danger">
+                            <div class="col-6">Discount Applied:</div>
+                            <div class="col-6 text-end fw-semibold">-₹{{ "{:,.2f}".format(po.bid.discount_amount) }}</div>
+                        </div>
+                        {% endif %}
+
+                        <hr class="my-2 opacity-50">
+
+                        <div class="row">
+                            <div class="col-6 text-muted fw-bold">Grand Total (INR):</div>
+                            <div class="col-6 text-end fw-bold text-teal fs-5" style="color: var(--secondary-teal);">₹{{ "{:,.2f}".format(po.amount_total) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

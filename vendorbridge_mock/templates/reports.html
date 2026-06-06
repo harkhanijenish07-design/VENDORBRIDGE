@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+        <h2>Reports & Analytics</h2>
+        <p>Procurement performance, spend insights, and supplier statistics</p>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm py-2 px-3 d-flex align-items-center gap-1" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+        <button class="btn btn-primary btn-sm py-2 px-3 d-flex align-items-center gap-1" onclick="alert('Exporting CSV...')">
+            <i class="bi bi-download"></i> Export Data
+        </button>
+    </div>
+</div>
+
+<!-- KPI Cards row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Total Spend (FY)</div>
+                <div class="stat-icon text-purple bg-purple-light" style="color: var(--primary-purple); background-color: var(--primary-purple-light);">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+            </div>
+            <div class="stat-value text-purple" style="color: var(--primary-purple);">₹{{ "{:,.2f}".format(total_spend) }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-arrow-up-short text-success"></i> +12.4% vs last year</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">PO Fulfillment</div>
+                <div class="stat-icon text-success bg-success-light" style="color: #0f9f90; background-color: #e6f5f5;">
+                    <i class="bi bi-truck"></i>
+                </div>
+            </div>
+            <div class="stat-value text-success" style="color: #0f9f90 !important;">94.2%</div>
+            <div class="small text-muted mt-2"><i class="bi bi-check-circle-fill text-success"></i> Within SLA standard</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Active Vendors</div>
+                <div class="stat-icon text-teal bg-teal-light" style="color: var(--secondary-teal); background-color: var(--secondary-teal-light);">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+            <div class="stat-value text-teal" style="color: var(--secondary-teal);">{{ active_vendors }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-patch-check-fill text-success"></i> Verified supplier base</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-label">Pending Invoices</div>
+                <div class="stat-icon text-warning bg-warning-light" style="background-color: #fef3c7;">
+                    <i class="bi bi-receipt"></i>
+                </div>
+            </div>
+            <div class="stat-value text-warning" style="color: #d97706 !important;">{{ pending_invoices }}</div>
+            <div class="small text-muted mt-2"><i class="bi bi-clock-history"></i> Awaiting pay clearance</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Monthly Trend Bar Chart -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold" style="font-size: 1rem;"><i class="bi bi-bar-chart-line me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Monthly Sourcing Trend</h5>
+            </div>
+            <div class="card-body p-4 d-flex align-items-center">
+                <canvas id="monthlyTrendChart" style="max-height: 280px; width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Spend Breakdown -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold" style="font-size: 1rem;"><i class="bi bi-pie-chart me-2 text-teal" style="color: var(--secondary-teal) !important;"></i>Spend by Category</h5>
+            </div>
+            <div class="card-body p-3">
+                <div class="table-responsive">
+                    <table class="table table-borderless table-sm align-middle small mb-0">
+                        <thead>
+                            <tr class="text-muted">
+                                <th>Category</th>
+                                <th class="text-end">Spend</th>
+                                <th class="text-end" style="width: 80px;">Ratio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat, val in category_spend.items() %}
+                            <tr>
+                                <td class="py-2.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <!-- Color dots for categories -->
+                                        {% if loop.index == 1 %}
+                                            <span class="rounded-circle d-inline-block" style="width: 8px; height: 8px; background-color: var(--primary-purple);"></span>
+                                        {% elif loop.index == 2 %}
+                                            <span class="rounded-circle d-inline-block" style="width: 8px; height: 8px; background-color: var(--secondary-teal);"></span>
+                                        {% elif loop.index == 3 %}
+                                            <span class="rounded-circle d-inline-block" style="width: 8px; height: 8px; background-color: #ff9f1c;"></span>
+                                        {% else %}
+                                            <span class="rounded-circle d-inline-block" style="width: 8px; height: 8px; background-color: #ff5964;"></span>
+                                        {% endif %}
+                                        <span class="fw-semibold text-dark">{{ cat }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-end fw-medium py-2.5">₹{{ "{:,.2f}".format(val) }}</td>
+                                <td class="text-end py-2.5">
+                                    <span class="badge bg-light text-dark border">
+                                        {{ "%.1f"|format((val / total_spend * 100) if total_spend > 0 else 0) }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Top Vendors Table -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold" style="font-size: 1rem;"><i class="bi bi-award me-2 text-warning"></i>Top Suppliers by Sourcing Value</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Supplier Name</th>
+                                <th>Category / Domain</th>
+                                <th>Number of Orders</th>
+                                <th>Rating</th>
+                                <th>Billing (Total Spend)</th>
+                                <th class="text-end pe-4" style="width: 150px;">Fulfillment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if top_vendors %}
+                                {% for item in top_vendors %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">{{ item.vendor.company_name }}</div>
+                                        <div class="small text-muted">GSTIN: <code class="text-uppercase">{{ item.vendor.gst_number }}</code></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-purple">{{ item.vendor.address.split(',')[-2] if ',' in item.vendor.address else 'IT Hardware' }}</span>
+                                    </td>
+                                    <td class="fw-medium text-secondary">{{ item.order_count }} POs</td>
+                                    <td>
+                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
+                                        <span class="fw-bold">{{ "%.1f"|format(item.vendor.rating) }}</span>
+                                    </td>
+                                    <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(item.total_spend) }}</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex align-items-center justify-content-end gap-2">
+                                            <div class="progress" style="width: 70px; height: 6px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="small fw-semibold text-secondary">95%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center p-4 text-muted">No sourcing history found.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+        
+        // Dynamic chart data passed from backend
+        const chartLabels = {{ chart_labels | tojson }};
+        const chartData = {{ chart_data | tojson }};
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Sourcing Value (₹)',
+                    data: chartData,
+                    backgroundColor: 'rgba(1, 126, 132, 0.75)',
+                    hoverBackgroundColor: 'var(--secondary-teal)',
+                    borderRadius: 5,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.03)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            },
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

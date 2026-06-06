@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Vendor Invoices</h2>
+    <p>Monitor vendor billing, tax details, and payment statuses</p>
+</div>
+
+<!-- Invoices Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-receipt me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Invoice Registry</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Invoice Number</th>
+                        <th>PO Reference</th>
+                        <th>Vendor Name</th>
+                        <th>Invoice Date</th>
+                        <th>Due Date</th>
+                        <th>Tax Breakdown</th>
+                        <th>Total Amount</th>
+                        <th>Payment Status</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if invoices %}
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td class="ps-4 fw-bold">INV-{{ "%04d"|format(invoice.id) }}</td>
+                            <td>
+                                <a href="/purchase-orders/{{ invoice.purchase_order_id }}" class="text-decoration-none fw-semibold">PO-{{ "%04d"|format(invoice.purchase_order_id) }}</a>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-secondary">{{ invoice.vendor.company_name }}</div>
+                            </td>
+                            <td>{{ invoice.invoice_date }}</td>
+                            <td class="text-danger fw-medium">{{ invoice.due_date }}</td>
+                            <td class="small">
+                                {% if invoice.gst_type == 'cgst_sgst' %}
+                                    <span class="text-muted">CGST (9%):</span> ₹{{ "{:,.2f}".format(invoice.cgst_amount) }}<br>
+                                    <span class="text-muted">SGST (9%):</span> ₹{{ "{:,.2f}".format(invoice.sgst_amount) }}
+                                {% else %}
+                                    <span class="text-muted">IGST (18%):</span> ₹{{ "{:,.2f}".format(invoice.igst_amount) }}
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(invoice.amount_total) }}</td>
+                            <td>
+                                <span class="badge {% if invoice.status == 'paid' %}bg-success{% elif invoice.status == 'sent' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ invoice.status | title }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="/purchase-orders/{{ invoice.purchase_order_id }}" class="btn btn-sm btn-outline-primary py-1 px-3">
+                                    View PO & INV
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center p-5 text-muted">
+                                <i class="bi bi-receipt mb-2 d-block" style="font-size: 2.5rem;"></i>
+                                No Invoices found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

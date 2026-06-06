@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Module Category -->
+    <record id="module_category_vendorbridge" model="ir.module.category">
+        <field name="name">VendorBridge</field>
+        <field name="description">VendorBridge Procurement Management</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- Security Groups -->
+    <record id="group_vendor" model="res.groups">
+        <field name="name">Vendor (Portal)</field>
+        <field name="category_id" ref="module_category_vendorbridge"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="comment">Portal vendor users - can submit quotations and view own records</field>
+    </record>
+
+    <record id="group_procurement_officer" model="res.groups">
+        <field name="name">Procurement Officer</field>
+        <field name="category_id" ref="module_category_vendorbridge"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Create RFQs, manage quotations, generate POs and invoices</field>
+    </record>
+
+    <record id="group_manager" model="res.groups">
+        <field name="name">Manager / Approver</field>
+        <field name="category_id" ref="module_category_vendorbridge"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Approve or reject RFQs within approval workflow</field>
+    </record>
+
+    <record id="group_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="category_id" ref="module_category_vendorbridge"/>
+        <field name="implied_ids" eval="[(4, ref('vendorbridge.group_manager')), (4, ref('vendorbridge.group_procurement_officer'))]"/>
+        <field name="comment">Full access to all VendorBridge features and settings</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Record Rules -->
+    <!-- ============================================================ -->
+
+    <!-- Vendor: Own Quotations Only -->
+    <record id="vendor_own_quotation_rule" model="ir.rule">
+        <field name="name">Vendor: Own Quotations Only</field>
+        <field name="model_id" ref="model_vendorbridge_quotation"/>
+        <field name="groups" eval="[(4, ref('vendorbridge.group_vendor'))]"/>
+        <field name="domain_force">[('vendor_id.user_ids','in',[user.id])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Vendor: Own Purchase Orders Only -->
+    <record id="vendor_own_po_rule" model="ir.rule">
+        <field name="name">Vendor: Own Purchase Orders Only</field>
+        <field name="model_id" ref="model_vendorbridge_purchaseorder"/>
+        <field name="groups" eval="[(4, ref('vendorbridge.group_vendor'))]"/>
+        <field name="domain_force">[('vendor_id.user_ids','in',[user.id])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Vendor: Own Invoices Only -->
+    <record id="vendor_own_invoice_rule" model="ir.rule">
+        <field name="name">Vendor: Own Invoices Only</field>
+        <field name="model_id" ref="model_vendorbridge_invoice"/>
+        <field name="groups" eval="[(4, ref('vendorbridge.group_vendor'))]"/>
+        <field name="domain_force">[('vendor_id.user_ids','in',[user.id])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Vendor: Assigned RFQs Only -->
+    <record id="vendor_assigned_rfq_rule" model="ir.rule">
+        <field name="name">Vendor: Assigned RFQs Only</field>
+        <field name="model_id" ref="model_vendorbridge_rfq"/>
+        <field name="groups" eval="[(4, ref('vendorbridge.group_vendor'))]"/>
+        <field name="domain_force">[('vendor_ids.user_ids','in',[user.id])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Manager: Own Approval Assignments -->
+    <record id="manager_own_approval_rule" model="ir.rule">
+        <field name="name">Manager: Own Approval Assignments</field>
+        <field name="model_id" ref="model_vendorbridge_approval_workflow"/>
+        <field name="groups" eval="[(4, ref('vendorbridge.group_manager'))]"/>
+        <field name="domain_force">['|', ('approver_id', '=', user.id), ('approver_id', '=', False)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Procurement Officer: Full access (company-level) -->
+    <record id="officer_company_rfq_rule" model="ir.rule">
+        <field name="name">Officer: Company RFQs</field>
+        <field name="model_id" ref="model_vendorbridge_rfq"/>
+        <field name="groups" eval="[(4, ref('vendorbridge.group_procurement_officer'))]"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+</odoo>

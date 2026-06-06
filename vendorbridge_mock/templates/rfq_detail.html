@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}RFQ Details - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="/rfqs" class="btn btn-outline-secondary btn-sm py-2 px-3 mb-4 d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-2"></i> Back to RFQs
+        </a>
+        
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center border-bottom pb-4">
+            <div>
+                <span class="text-uppercase tracking-wider text-muted font-monospace small">Request for Quotation Detail</span>
+                <h2 class="display-7 fw-bold text-dark mt-1 mb-2">RFQ-{{ "%04d"|format(rfq.id) }}: {{ rfq.title }}</h2>
+                <div class="d-flex flex-wrap gap-3">
+                    <span class="badge {% if rfq.status == 'open' %}bg-success{% elif rfq.status == 'compared' or rfq.status == 'approved' %}bg-info{% elif rfq.status == 'pending_approval' %}bg-warning{% elif rfq.status == 'po_created' %}bg-purple{% else %}bg-secondary{% endif %} fs-8 py-2 px-3 shadow-sm">
+                        <i class="bi {% if rfq.status == 'open' %}bi-check2-circle{% else %}bi-hourglass-split{% endif %} me-1"></i>
+                        Status: {{ rfq.status | replace('_', ' ') | title }}
+                    </span>
+                    <span class="text-secondary fw-semibold small d-flex align-items-center bg-light rounded px-2.5 py-1.5 border">
+                        <i class="bi bi-tag-fill me-2 text-primary" style="color: var(--primary-purple) !important;"></i>
+                        Category: {{ rfq.category }}
+                    </span>
+                    <span class="text-secondary fw-semibold small d-flex align-items-center bg-light rounded px-2.5 py-1.5 border">
+                        <i class="bi bi-calendar-check me-2 text-danger"></i>
+                        Deadline: {{ rfq.deadline }}
+                    </span>
+                </div>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                {% if rfq.status == 'open' %}
+                <a href="/quotations/submit/{{ rfq.id }}" class="btn btn-primary">
+                    <i class="bi bi-send me-1"></i> Record Quotation
+                </a>
+                {% endif %}
+                {% if rfq.bids|length >= 2 and (rfq.status == 'open' or rfq.status == 'compared') %}
+                <a href="/quotations/compare/{{ rfq.id }}" class="btn btn-success">
+                    <i class="bi bi-columns-gap me-1"></i> Compare Bids
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- RFQ Info / Scope -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm mb-4 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-card-text me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Scope & Description</h5>
+            </div>
+            <div class="card-body">
+                <div class="p-3 bg-light rounded border mb-4" style="line-height: 1.6; white-space: pre-line;">
+                    {{ rfq.description }}
+                </div>
+                
+                <h6 class="fw-bold text-secondary mb-3">Requested Line Items</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item Description</th>
+                                <th style="width: 120px;">Qty Required</th>
+                                <th style="width: 120px;">UOM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if rfq.line_ids %}
+                                {% for line in rfq.line_ids %}
+                                <tr>
+                                    <td>{{ line.description }}</td>
+                                    <td class="fw-semibold text-dark">{{ line.quantity }}</td>
+                                    <td>{{ line.uom }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No specific line items defined. View description for scope details.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bids Panel -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-chat-square-text me-2 text-teal" style="color: var(--secondary-teal) !important;"></i>Submitted Quotations</h5>
+                <span class="badge bg-secondary">{{ rfq.bids|length }} bids</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% if rfq.bids %}
+                        {% for bid in rfq.bids %}
+                        <div class="list-group-item p-3 {% if bid.is_selected %}bg-light-success{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ bid.vendor.company_name }}</h6>
+                                    <span class="small text-muted">Delivery: {{ bid.delivery_days }} days</span>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-dark">₹{{ "{:,.2f}".format(bid.total_amount) }}</div>
+                                    <span class="badge {% if bid.status == 'selected' %}bg-success{% elif bid.status == 'submitted' %}bg-info{% else %}bg-secondary{% endif %}">
+                                        {{ bid.status | title }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">{{ bid.notes or 'No additional notes provided.' }}</p>
+                            {% if rfq.status == 'open' or rfq.status == 'compared' %}
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="/quotations/compare/{{ rfq.id }}" class="btn btn-sm btn-outline-primary py-1 px-2 text-decoration-none">
+                                    Compare <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-5 text-center text-muted">
+                            <i class="bi bi-chat-square-text mb-3 d-block" style="font-size: 2.5rem;"></i>
+                            <p class="mb-3">No quotations have been received for this RFQ yet.</p>
+                            {% if rfq.status == 'open' %}
+                            <a href="/quotations/submit/{{ rfq.id }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i> Record Quotation
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

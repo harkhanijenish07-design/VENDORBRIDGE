@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Record Quotation - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Record Vendor Quotation</h2>
+    <p>Submit bid rates on behalf of an approved vendor for RFQ-{{ "%04d"|format(rfq.id) }}: {{ rfq.title }}</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-info-circle me-2 text-primary" style="color: var(--primary-purple) !important;"></i>RFQ Reference Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2"><strong>Category:</strong> <span class="badge bg-purple">{{ rfq.category }}</span></div>
+                    <div class="col-md-4 mb-2"><strong>Deadline:</strong> <span class="text-danger fw-semibold">{{ rfq.deadline }}</span></div>
+                    <div class="col-md-4 mb-2"><strong>Priority:</strong> <span class="badge bg-secondary">{{ rfq.priority | title }}</span></div>
+                </div>
+                <div class="mt-2 p-2.5 bg-light rounded text-muted small" style="white-space: pre-line;">{{ rfq.description }}</div>
+            </div>
+        </div>
+
+        <form action="/api/quotations" method="POST" id="quotation-form">
+            <input type="hidden" name="rfq_id" value="{{ rfq.id }}">
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-person-check me-2 text-teal" style="color: var(--secondary-teal) !important;"></i>Vendor & Timeline Info</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="vendor_id" class="form-label fw-semibold text-secondary">Vendor Name *</label>
+                            <select class="form-select" id="vendor_id" name="vendor_id" required>
+                                <option value="" disabled selected>-- Select Vendor --</option>
+                                {% for vendor in vendors %}
+                                    <option value="{{ vendor.id }}">{{ vendor.company_name }} ({{ vendor.contact_name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="delivery_days" class="form-label fw-semibold text-secondary">Delivery Timeline *</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="delivery_days" name="delivery_days" value="7" min="1" required>
+                                <span class="input-group-text">days</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line Items Pricing Table -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-table me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Line Items Pricing</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" id="pricing-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Item Description</th>
+                                    <th style="width: 100px;">Qty</th>
+                                    <th style="width: 150px;">Unit Price (₹) *</th>
+                                    <th style="width: 150px;">GST Rate (%) *</th>
+                                    <th style="width: 180px;">Total (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in rfq.line_ids %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-semibold text-dark">{{ line.description }}</div>
+                                        <input type="hidden" name="rfq_line_id[]" value="{{ line.id }}">
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold qty-display">{{ line.quantity }}</span> {{ line.uom }}
+                                        <input type="hidden" class="line-qty" value="{{ line.quantity }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" min="0" class="form-control form-control-sm line-price" name="unit_price[]" value="0.00" oninput="calculateTotals()" required>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm line-gst" name="gst_rate[]" onchange="calculateTotals()" required>
+                                            <option value="0">0%</option>
+                                            <option value="5">5%</option>
+                                            <option value="12">12%</option>
+                                            <option value="18" selected>18%</option>
+                                            <option value="28">28%</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">₹</span>
+                                        <span class="fw-semibold text-dark line-total">0.00</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tax & Discount Summary -->
+                <div class="card-footer bg-light p-4">
+                    <div class="row justify-content-end">
+                        <div class="col-md-5">
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Subtotal (Untaxed):</div>
+                                <div class="col-6 text-end fw-semibold text-dark">₹<span id="summary-subtotal">0.00</span></div>
+                                <input type="hidden" name="amount" id="input-subtotal" value="0.00">
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">GST Total:</div>
+                                <div class="col-6 text-end fw-semibold text-dark">₹<span id="summary-tax">0.00</span></div>
+                                <input type="hidden" name="tax_amount" id="input-tax" value="0.00">
+                            </div>
+                            
+                            <hr class="my-2 opacity-50">
+                            
+                            <div class="row align-items-center mb-3">
+                                <div class="col-6 text-muted">Discount (%):</div>
+                                <div class="col-6 text-end">
+                                    <input type="number" class="form-control form-control-sm text-end d-inline-block" style="width: 80px;" id="discount_percent" name="discount_percent" value="0" min="0" max="100" oninput="calculateTotals()">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6 text-muted">Discount Amount:</div>
+                                <div class="col-6 text-end fw-semibold text-danger">-₹<span id="summary-discount">0.00</span></div>
+                            </div>
+
+                            <hr class="my-2 opacity-50">
+
+                            <div class="row">
+                                <div class="col-6 text-muted fw-bold">Grand Total:</div>
+                                <div class="col-6 text-end fw-bold text-teal" style="font-size: 1.15rem; color: var(--secondary-teal);">₹<span id="summary-grand-total">0.00</span></div>
+                                <input type="hidden" name="total_amount" id="input-grand-total" value="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes & Submissions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label for="notes" class="form-label fw-semibold text-secondary">Quotation Remarks / Terms</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Enter special delivery commitments, warranties, or payment terms..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="/rfqs/{{ rfq.id }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Submit Quotation</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function calculateTotals() {
+        const rows = document.querySelectorAll("#pricing-table tbody tr");
+        let subtotal = 0;
+        let totalTax = 0;
+
+        rows.forEach(row => {
+            const qty = parseFloat(row.querySelector(".line-qty").value) || 0;
+            const price = parseFloat(row.querySelector(".line-price").value) || 0;
+            const gstRate = parseFloat(row.querySelector(".line-gst").value) || 0;
+
+            const rowSubtotal = qty * price;
+            const rowTax = rowSubtotal * (gstRate / 100);
+            const rowTotal = rowSubtotal + rowTax;
+
+            row.querySelector(".line-total").textContent = rowTotal.toFixed(2);
+
+            subtotal += rowSubtotal;
+            totalTax += rowTax;
+        });
+
+        const discountPercent = parseFloat(document.getElementById("discount_percent").value) || 0;
+        const discountAmount = subtotal * (discountPercent / 100);
+        
+        // Final values
+        const grandTotal = (subtotal + totalTax) - discountAmount;
+
+        // Render values
+        document.getElementById("summary-subtotal").textContent = subtotal.toFixed(2);
+        document.getElementById("summary-tax").textContent = totalTax.toFixed(2);
+        document.getElementById("summary-discount").textContent = discountAmount.toFixed(2);
+        document.getElementById("summary-grand-total").textContent = grandTotal.toFixed(2);
+
+        // Put in inputs for form submission
+        document.getElementById("input-subtotal").value = subtotal.toFixed(2);
+        document.getElementById("input-tax").value = totalTax.toFixed(2);
+        document.getElementById("input-grand-total").value = grandTotal.toFixed(2);
+    }
+
+    // Run once at load to set initial values (0)
+    document.addEventListener("DOMContentLoaded", calculateTotals);
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Settings Action -->
+    <record id="action_vendorbridge_settings" model="ir.actions.act_window">
+        <field name="name">VendorBridge Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'vendorbridge'}</field>
+    </record>
+
+    <!-- Settings Form View -->
+    <record id="view_vendorbridge_settings" model="ir.ui.view">
+        <field name="name">vendorbridge.settings.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="VendorBridge" string="VendorBridge" name="vendorbridge"
+                     groups="vendorbridge.group_admin">
+                    <block title="Approval Thresholds" name="approval_settings">
+                        <setting string="Single Approval Threshold"
+                                 help="RFQs below this amount require only 1 approver.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="threshold_approver_1" class="col-lg-3"/>
+                                    <field name="threshold_approver_1"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Dual Approval Threshold"
+                                 help="RFQs above this amount require 2 approvers (Manager + Finance).">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="threshold_approver_2" class="col-lg-3"/>
+                                    <field name="threshold_approver_2"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="GST Settings" name="gst_settings">
+                        <setting string="Default GST Rate"
+                                 help="Default GST rate applied to new invoices.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="default_gst_rate" class="col-lg-3"/>
+                                    <field name="default_gst_rate"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

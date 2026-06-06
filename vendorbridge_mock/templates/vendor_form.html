@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{% if vendor %}Edit Vendor{% else %}Add Vendor{% endif %} - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>{% if vendor %}Edit Vendor Profile{% else %}Add New Vendor{% endif %}</h2>
+    <p>{% if vendor %}Modify details for {{ vendor.company_name }}{% else %}Register a new supplier manually{% endif %}</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <form action="{% if vendor %}/api/vendors/{{ vendor.id }}/edit{% else %}/api/vendors{% endif %}" method="POST">
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="company_name" class="form-label fw-semibold text-secondary">Company Name *</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" value="{{ vendor.company_name if vendor else '' }}" placeholder="Acme Ltd" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contact_name" class="form-label fw-semibold text-secondary">Primary Contact Name *</label>
+                            <input type="text" class="form-control" id="contact_name" name="contact_name" value="{{ vendor.contact_name if vendor else '' }}" placeholder="John Doe" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold text-secondary">Email Address *</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ vendor.email if vendor else '' }}" placeholder="sales@acme.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label fw-semibold text-secondary">Phone Number *</label>
+                            <input type="text" class="form-control" id="phone" name="phone" value="{{ vendor.phone if vendor else '' }}" placeholder="+91 98765 43210" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="gst_number" class="form-label fw-semibold text-secondary">GSTIN *</label>
+                            <input type="text" class="form-control text-uppercase" id="gst_number" name="gst_number" value="{{ vendor.gst_number if vendor else '' }}" placeholder="27AABCU9603R1ZM" required maxlength="15">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="state" class="form-label fw-semibold text-secondary">State *</label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="Maharashtra" {% if vendor and vendor.state == 'Maharashtra' %}selected{% endif %}>Maharashtra</option>
+                                <option value="Karnataka" {% if vendor and vendor.state == 'Karnataka' %}selected{% endif %}>Karnataka</option>
+                                <option value="Delhi" {% if vendor and vendor.state == 'Delhi' %}selected{% endif %}>Delhi</option>
+                                <option value="Gujarat" {% if vendor and vendor.state == 'Gujarat' %}selected{% endif %}>Gujarat</option>
+                                <option value="Tamil Nadu" {% if vendor and vendor.state == 'Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {% if vendor %}
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label fw-semibold text-secondary">Status *</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="pending" {% if vendor.status == 'pending' %}selected{% endif %}>Pending Approval</option>
+                                <option value="approved" {% if vendor.status == 'approved' %}selected{% endif %}>Approved (Active)</option>
+                                <option value="blocked" {% if vendor.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="rating" class="form-label fw-semibold text-secondary">Rating</label>
+                            <input type="number" step="0.1" min="1.0" max="5.0" class="form-control" id="rating" name="rating" value="{{ vendor.rating }}">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label for="address" class="form-label fw-semibold text-secondary">Company Address *</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter full office/factory address" required>{{ vendor.address if vendor else '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3 mt-5">
+                        <a href="/vendors" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if vendor %}Save Changes{% else %}Create Vendor{% endif %}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

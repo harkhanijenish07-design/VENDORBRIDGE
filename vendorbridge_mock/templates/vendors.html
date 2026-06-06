@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Vendors - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+        <h2>Vendors</h2>
+        <p>Manage supplier profiles and registrations</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="/vendors/new" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Add Vendor
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form action="/vendors" method="GET" id="search-form">
+            <div class="row g-3 align-items-center">
+                <div class="col-lg-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" name="search" id="search-input" value="{{ search_query }}" placeholder="Search by name, GSTIN, category...">
+                    </div>
+                </div>
+                
+                <div class="col-lg-7">
+                    <div class="d-flex flex-wrap align-items-center justify-content-lg-end gap-2 filter-pills">
+                        <a href="/vendors?status=all{% if search_query %}&search={{ search_query }}{% endif %}" class="btn {% if current_status == 'all' %}btn-primary active{% else %}btn-outline-secondary{% endif %}">
+                            All
+                        </a>
+                        <a href="/vendors?status=approved{% if search_query %}&search={{ search_query }}{% endif %}" class="btn {% if current_status == 'approved' %}btn-primary active{% else %}btn-outline-secondary{% endif %}">
+                            Active (Approved)
+                        </a>
+                        <a href="/vendors?status=pending{% if search_query %}&search={{ search_query }}{% endif %}" class="btn {% if current_status == 'pending' %}btn-primary active{% else %}btn-outline-secondary{% endif %}">
+                            Pending
+                        </a>
+                        <a href="/vendors?status=blocked{% if search_query %}&search={{ search_query }}{% endif %}" class="btn {% if current_status == 'blocked' %}btn-primary active{% else %}btn-outline-secondary{% endif %}">
+                            Blocked
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Vendors Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Vendor Name</th>
+                        <th>Category / Specialty</th>
+                        <th>GST No</th>
+                        <th>Contact Email / Phone</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if vendors %}
+                        {% for vendor in vendors %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">{{ vendor.company_name }}</div>
+                                <div class="small text-muted">{{ vendor.contact_name }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-purple">{{ vendor.address.split(',')[-2] if ',' in vendor.address else 'IT Hardware' }}</span>
+                            </td>
+                            <td><code class="text-uppercase">{{ vendor.gst_number }}</code></td>
+                            <td>
+                                <div>{{ vendor.email }}</div>
+                                <div class="small text-muted">{{ vendor.phone }}</div>
+                            </td>
+                            <td>
+                                <span class="text-warning"><i class="bi bi-star-fill"></i></span> {{ "%.1f"|format(vendor.rating) }}
+                            </td>
+                            <td>
+                                <span class="badge {% if vendor.status == 'approved' %}bg-success{% elif vendor.status == 'pending' %}bg-warning{% elif vendor.status == 'blocked' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                    {{ vendor.status | title }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="font-size: 0.85rem;">
+                                        <li><a class="dropdown-item" href="/vendors/edit/{{ vendor.id }}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
+                                        {% if vendor.status == 'pending' or vendor.status == 'blocked' %}
+                                        <li>
+                                            <form action="/api/vendors/{{ vendor.id }}/approve" method="POST" class="d-inline">
+                                                <button type="submit" class="dropdown-item text-success"><i class="bi bi-patch-check me-2"></i>Approve Vendor</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                        {% if vendor.status != 'blocked' %}
+                                        <li>
+                                            <form action="/api/vendors/{{ vendor.id }}/block" method="POST" class="d-inline">
+                                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-slash-circle me-2"></i>Block Vendor</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center p-5 text-muted">
+                                <i class="bi bi-people mb-2 d-block" style="font-size: 2.5rem;"></i>
+                                No vendors match your filters.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

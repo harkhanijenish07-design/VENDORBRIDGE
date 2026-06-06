@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Purchase Order Tree -->
+    <record id="view_purchase_order_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.purchaseorder.tree</field>
+        <field name="model">vendorbridge.purchaseorder</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="state in ('confirmed','done')"
+                  decoration-danger="state=='cancelled'">
+                <field name="name"/>
+                <field name="rfq_id"/>
+                <field name="vendor_id"/>
+                <field name="date_order"/>
+                <field name="date_planned"/>
+                <field name="amount_total" widget="float" options="{'precision': 2}" sum="Total"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('confirmed','done')"
+                       decoration-info="state=='draft'"
+                       decoration-danger="state=='cancelled'"/>
+                <field name="invoice_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Purchase Order Form (Combined PO + Invoice - Screen 9) -->
+    <record id="view_purchase_order_form" model="ir.ui.view">
+        <field name="name">vendorbridge.purchaseorder.form</field>
+        <field name="model">vendorbridge.purchaseorder</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm Order"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_done" string="Mark as Done"
+                            type="object" class="btn-success"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object" class="btn-secondary"
+                            invisible="state in ('done','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Order Details">
+                            <field name="rfq_id"/>
+                            <field name="quotation_id"/>
+                            <field name="vendor_id"/>
+                            <field name="date_order"/>
+                            <field name="date_planned"/>
+                        </group>
+                        <group string="Amounts">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount_untaxed" widget="float" options="{'precision': 2}"/>
+                            <field name="amount_tax" widget="float" options="{'precision': 2}"/>
+                            <field name="amount_total" widget="float" options="{'precision': 2}"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Order Lines">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal" sum="Total"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Invoice Section (Combined Screen 9) -->
+                        <page string="Invoice" name="invoice_tab"
+                              invisible="not invoice_id">
+                            <group>
+                                <group string="Invoice Details">
+                                    <field name="invoice_id"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Purchase Order Search -->
+    <record id="view_purchase_order_search" model="ir.ui.view">
+        <field name="name">vendorbridge.purchaseorder.search</field>
+        <field name="model">vendorbridge.purchaseorder</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="vendor_id"/>
+                <field name="rfq_id"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
+                <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                <filter string="This Month" name="this_month" domain="[('date_order','&gt;=', (context_today() - relativedelta(day=1)).strftime('%%Y-%%m-%%d'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Vendor" name="group_vendor" context="{'group_by': 'vendor_id'}"/>
+                    <filter string="Month" name="group_month" context="{'group_by': 'date_order:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Purchase Order Action -->
+    <record id="action_purchase_order_list" model="ir.actions.act_window">
+        <field name="name">Purchase Orders</field>
+        <field name="res_model">vendorbridge.purchaseorder</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_purchase_order_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No purchase orders yet
+            </p>
+            <p>Purchase orders are automatically created when an RFQ is fully approved.</p>
+        </field>
+    </record>
+</odoo>

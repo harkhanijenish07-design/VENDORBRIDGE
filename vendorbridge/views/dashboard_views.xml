@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Action -->
+    <record id="action_vendorbridge_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">vendorbridge.rfq</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{'dashboard_view': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to VendorBridge!
+            </p>
+            <p>Create your first RFQ to get started with procurement.</p>
+        </field>
+    </record>
+
+    <!-- Dashboard Kanban View -->
+    <record id="view_rfq_dashboard_kanban" model="ir.ui.view">
+        <field name="name">vendorbridge.rfq.dashboard.kanban</field>
+        <field name="model">vendorbridge.rfq</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" default_group_by="state" create="true" sample="1">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="state"/>
+                <field name="priority"/>
+                <field name="deadline"/>
+                <field name="total_estimated"/>
+                <field name="requestor_id"/>
+                <field name="quotation_count"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click vb_dashboard_card">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <span class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_manage_button_section">
+                                    <field name="priority" widget="priority"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_content">
+                                <div class="vb_card_title">
+                                    <strong><field name="title"/></strong>
+                                </div>
+                                <div class="vb_card_meta mt-2">
+                                    <div>
+                                        <i class="fa fa-calendar-o me-1"/>
+                                        Deadline: <field name="deadline"/>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-file-text-o me-1"/>
+                                        Quotations: <field name="quotation_count"/>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-inr me-1"/>
+                                        Est. Total: ₹<field name="total_estimated" widget="float" options="{'precision': 2}"/>
+                                    </div>
+                                </div>
+                                <div class="vb_card_footer mt-2">
+                                    <field name="requestor_id" widget="many2one_avatar_user"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+</odoo>

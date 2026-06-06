@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Approvals - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Approval Workflows</h2>
+    <p>Track and process internal sourcing approvals</p>
+</div>
+
+<!-- Approvals Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-check2-square me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Pending & Historical Approvals</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Request ID</th>
+                        <th>RFQ Reference</th>
+                        <th>Selected Vendor</th>
+                        <th>Amount</th>
+                        <th>Stage / Approver</th>
+                        <th>Created At</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if approvals %}
+                        {% for approval in approvals %}
+                        <tr>
+                            <td class="ps-4 fw-bold">APR-{{ "%04d"|format(approval.id) }}</td>
+                            <td>
+                                <div class="fw-semibold text-dark">RFQ-{{ "%04d"|format(approval.rfq.id) }}: {{ approval.rfq.title }}</div>
+                                <div class="small text-muted">Category: {{ approval.rfq.category }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-secondary">{{ approval.bid.vendor.company_name }}</div>
+                            </td>
+                            <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(approval.bid.total_amount) }}</td>
+                            <td>
+                                <div class="fw-semibold text-dark">Level {{ approval.level }}</div>
+                                <div class="small text-muted">{{ approval.approver }}</div>
+                            </td>
+                            <td>{{ approval.created_at }}</td>
+                            <td>
+                                <span class="badge {% if approval.status == 'approved' %}bg-success{% elif approval.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ approval.status | title }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="/approvals/{{ approval.id }}" class="btn btn-sm {% if approval.status == 'pending' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                                    {% if approval.status == 'pending' %}Review & Approve{% else %}View Details{% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center p-5 text-muted">
+                                <i class="bi bi-check2-square mb-2 d-block" style="font-size: 2.5rem;"></i>
+                                No approval requests found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

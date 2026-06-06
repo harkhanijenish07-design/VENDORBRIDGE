@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Approval Detail - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Approval Workflow</h2>
+    <p>Review and authorize quotation recommendations</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="/approvals" class="btn btn-outline-secondary btn-sm py-2 px-3"><i class="bi bi-arrow-left me-1"></i> Back to Approvals</a>
+    </div>
+</div>
+
+<div class="row justify-content-center g-4">
+    <!-- Stepper indicator at the top -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-4 px-5">
+                <div class="stepper" id="approval-stepper">
+                    <div class="stepper-step {% if approval.status == 'approved' or approval.level > 1 %}done{% else %}active{% endif %}">
+                        <div class="stepper-circle">1</div>
+                        <span>Procurement Sourcing</span>
+                    </div>
+                    <div class="stepper-line {% if approval.status == 'approved' and approval.level > 1 %}done{% endif %}"></div>
+                    <div class="stepper-step {% if approval.status == 'approved' and approval.level > 1 %}done{% elif approval.level == 2 and approval.status == 'pending' %}active{% endif %}">
+                        <div class="stepper-circle">2</div>
+                        <span>Finance Review</span>
+                    </div>
+                    <div class="stepper-line {% if approval.status == 'approved' and approval.level == 3 %}done{% endif %}"></div>
+                    <div class="stepper-step {% if approval.status == 'approved' and approval.level == 3 %}done{% endif %}">
+                        <div class="stepper-circle">3</div>
+                        <span>Final Sign-off</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Left Column: Stages & History -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-list-task me-2 text-primary" style="color: var(--primary-purple) !important;"></i>Approval Stages & History</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline-list">
+                    <!-- Stage 1 -->
+                    <div class="timeline-item">
+                        <div class="timeline-dot {% if approval.level > 1 or (approval.level == 1 and approval.status == 'approved') %}bg-success text-white{% else %}bg-warning text-white{% endif %}">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-dark">Stage 1: Department Sourcing Head</h6>
+                                <span class="badge {% if approval.level > 1 or (approval.level == 1 and approval.status == 'approved') %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if approval.level > 1 or (approval.level == 1 and approval.status == 'approved') %}Approved{% else %}Pending{% endif %}
+                                </span>
+                            </div>
+                            <p class="small text-muted mb-1">Approver: Dept Manager (Sourcing)</p>
+                            {% if approval.level > 1 or (approval.level == 1 and approval.status == 'approved') %}
+                                <div class="bg-light p-2 rounded mt-2 border small">
+                                    <strong>Remarks:</strong> Verified lowest bid against budget constraint. Recommended.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Stage 2 -->
+                    <div class="timeline-item">
+                        <div class="timeline-dot {% if approval.level > 2 or (approval.level == 2 and approval.status == 'approved') %}bg-success text-white{% elif approval.level == 2 and approval.status == 'pending' %}bg-warning text-white{% else %}bg-secondary text-white{% endif %}">
+                            <i class="bi {% if approval.level > 2 %}bi-check-lg{% else %}bi-hourglass-split{% endif %}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-dark">Stage 2: Finance Review</h6>
+                                <span class="badge {% if approval.level > 2 %}bg-success{% elif approval.level == 2 and approval.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {% if approval.level > 2 %}Approved{% elif approval.level == 2 and approval.status == 'pending' %}Pending{% else %}Waiting{% endif %}
+                                </span>
+                            </div>
+                            <p class="small text-muted mb-1">Approver: Finance Controller</p>
+                            {% if approval.level == 2 and approval.status == 'approved' %}
+                                <div class="bg-light p-2 rounded mt-2 border small">
+                                    <strong>Remarks:</strong> {{ approval.remarks or 'Approved.' }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active review panel (if pending) -->
+                {% if approval.status == 'pending' %}
+                    <hr class="my-4 opacity-50">
+                    <form action="/api/approvals/{{ approval.id }}/action" method="POST">
+                        <div class="mb-3">
+                            <label for="remarks" class="form-label fw-semibold text-secondary">Review Remarks / Notes *</label>
+                            <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Enter reason for approval or rejection..." required></textarea>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="submit" name="action" value="reject" class="btn btn-danger"><i class="bi bi-x-circle me-1"></i> Reject Proposal</button>
+                            <button type="submit" name="action" value="approve" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Approve & Authorize</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert {% if approval.status == 'approved' %}alert-success{% else %}alert-danger{% endif %} mt-4 d-flex align-items-center" role="alert">
+                        <i class="bi {% if approval.status == 'approved' %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} me-3 fs-4"></i>
+                        <div>
+                            <strong>Workflow Complete:</strong> This request has been <strong>{{ approval.status | title }}</strong>.
+                            {% if approval.remarks %}
+                                <div class="mt-2 small"><strong>Remarks:</strong> "{{ approval.remarks }}"</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Quotation Summary -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-file-earmark-spreadsheet me-2 text-teal" style="color: var(--secondary-teal) !important;"></i>Selected Quotation Details</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">{{ approval.bid.vendor.company_name }}</h5>
+                        <span class="small text-muted"><i class="bi bi-star-fill text-warning"></i> {{ "%.1f"|format(approval.bid.vendor.rating) }} Rating</span>
+                    </div>
+                    <div class="text-end">
+                        <div class="h5 fw-bold text-teal mb-0" style="color: var(--secondary-teal);">₹{{ "{:,.2f}".format(approval.bid.total_amount) }}</div>
+                        <span class="small text-muted">Grand Total</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded border mb-4">
+                    <div class="row g-2 text-muted small">
+                        <div class="col-6"><strong>RFQ Reference:</strong></div>
+                        <div class="col-6 text-dark text-end">RFQ-{{ "%04d"|format(approval.rfq.id) }}</div>
+                        
+                        <div class="col-6"><strong>Delivery Timeline:</strong></div>
+                        <div class="col-6 text-dark text-end">{{ approval.bid.delivery_days }} days</div>
+                        
+                        <div class="col-6"><strong>GSTIN / Tax ID:</strong></div>
+                        <div class="col-6 text-dark text-end"><code class="text-uppercase">{{ approval.bid.vendor.gst_number }}</code></div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-secondary mb-3">Bid Line Items</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle text-center small">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Item</th>
+                                <th style="width: 50px;">Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in approval.bid.line_ids %}
+                            <tr>
+                                <td class="text-start">{{ line.rfq_line.description }}</td>
+                                <td>{{ line.rfq_line.quantity }}</td>
+                                <td>₹{{ "{:,.2f}".format(line.unit_price) }}</td>
+                                <td>₹{{ "{:,.2f}".format(line.subtotal) }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-light fw-semibold">
+                                <td colspan="3" class="text-end">Untaxed Subtotal:</td>
+                                <td>₹{{ "{:,.2f}".format(approval.bid.amount) }}</td>
+                            </tr>
+                            <tr class="table-light fw-semibold">
+                                <td colspan="3" class="text-end">Tax / GST:</td>
+                                <td>₹{{ "{:,.2f}".format(approval.bid.tax_amount) }}</td>
+                            </tr>
+                            {% if approval.bid.discount_amount > 0 %}
+                            <tr class="table-light fw-semibold text-danger">
+                                <td colspan="3" class="text-end">Discount Applied:</td>
+                                <td>-₹{{ "{:,.2f}".format(approval.bid.discount_amount) }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="table-light fw-bold text-dark">
+                                <td colspan="3" class="text-end">Grand Total:</td>
+                                <td>₹{{ "{:,.2f}".format(approval.bid.total_amount) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_vendorbridge_root"
+              name="VendorBridge"
+              web_icon="vendorbridge,static/description/icon.png"
+              sequence="10"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_vendorbridge_dashboard"
+              name="Dashboard"
+              parent="menu_vendorbridge_root"
+              action="action_vendorbridge_dashboard"
+              sequence="1"/>
+
+    <!-- Vendor Management -->
+    <menuitem id="menu_vendorbridge_vendors"
+              name="Vendors"
+              parent="menu_vendorbridge_root"
+              sequence="2"/>
+
+    <menuitem id="menu_vendorbridge_vendor_list"
+              name="All Vendors"
+              parent="menu_vendorbridge_vendors"
+              action="action_vendor_list"
+              sequence="1"/>
+
+    <menuitem id="menu_vendorbridge_vendor_categories"
+              name="Vendor Categories"
+              parent="menu_vendorbridge_vendors"
+              action="action_vendor_category"
+              sequence="2"/>
+
+    <!-- RFQ -->
+    <menuitem id="menu_vendorbridge_rfq"
+              name="RFQs"
+              parent="menu_vendorbridge_root"
+              action="action_rfq_list"
+              sequence="3"/>
+
+    <!-- Quotations -->
+    <menuitem id="menu_vendorbridge_quotations"
+              name="Quotations"
+              parent="menu_vendorbridge_root"
+              action="action_quotation_list"
+              sequence="4"/>
+
+    <!-- Approvals -->
+    <menuitem id="menu_vendorbridge_approvals"
+              name="Approvals"
+              parent="menu_vendorbridge_root"
+              action="action_approval_list"
+              sequence="5"/>
+
+    <!-- Purchase Orders -->
+    <menuitem id="menu_vendorbridge_purchase_orders"
+              name="Purchase Orders"
+              parent="menu_vendorbridge_root"
+              action="action_purchase_order_list"
+              sequence="6"/>
+
+    <!-- Invoices -->
+    <menuitem id="menu_vendorbridge_invoices"
+              name="Invoices"
+              parent="menu_vendorbridge_root"
+              action="action_invoice_list"
+              sequence="7"/>
+
+    <!-- Activity Logs -->
+    <menuitem id="menu_vendorbridge_activity_logs"
+              name="Activity Logs"
+              parent="menu_vendorbridge_root"
+              action="action_activity_log_list"
+              sequence="8"/>
+
+    <!-- Reports & Analytics -->
+    <menuitem id="menu_vendorbridge_reports"
+              name="Reports &amp; Analytics"
+              parent="menu_vendorbridge_root"
+              action="action_report_analytics"
+              sequence="9"/>
+
+    <!-- Settings -->
+    <menuitem id="menu_vendorbridge_settings"
+              name="Settings"
+              parent="menu_vendorbridge_root"
+              action="action_vendorbridge_settings"
+              groups="vendorbridge.group_admin"
+              sequence="99"/>
+</odoo>

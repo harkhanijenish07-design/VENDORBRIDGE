@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Monthly Spend Trend (Line Chart) -->
+    <record id="view_invoice_graph_trend" model="ir.ui.view">
+        <field name="name">vendorbridge.invoice.graph.trend</field>
+        <field name="model">vendorbridge.invoice</field>
+        <field name="arch" type="xml">
+            <graph string="Monthly Procurement Trend" type="line">
+                <field name="invoice_date" interval="month"/>
+                <field name="amount_total" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Spend by Vendor (Bar Chart) -->
+    <record id="view_invoice_graph_vendor" model="ir.ui.view">
+        <field name="name">vendorbridge.invoice.graph.vendor</field>
+        <field name="model">vendorbridge.invoice</field>
+        <field name="arch" type="xml">
+            <graph string="Spend by Vendor" type="bar">
+                <field name="vendor_id"/>
+                <field name="amount_total" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View: Detailed Analysis -->
+    <record id="view_invoice_pivot" model="ir.ui.view">
+        <field name="name">vendorbridge.invoice.pivot</field>
+        <field name="model">vendorbridge.invoice</field>
+        <field name="arch" type="xml">
+            <pivot string="Procurement Analysis">
+                <field name="vendor_id" type="row"/>
+                <field name="invoice_date" interval="month" type="col"/>
+                <field name="amount_total" type="measure"/>
+                <field name="amount_untaxed" type="measure"/>
+                <field name="tax_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Reports & Analytics Action -->
+    <record id="action_report_analytics" model="ir.actions.act_window">
+        <field name="name">Reports &amp; Analytics</field>
+        <field name="res_model">vendorbridge.invoice</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_invoice_graph_trend')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_invoice_pivot')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_invoice_tree')})]"/>
+        <field name="search_view_id" ref="view_invoice_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No data for analytics yet
+            </p>
+            <p>Analytics will populate as invoices are generated.</p>
+        </field>
+    </record>
+</odoo>

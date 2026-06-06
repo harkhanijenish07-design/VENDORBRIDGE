@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Approval Workflow Tree -->
+    <record id="view_approval_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.approval.workflow.tree</field>
+        <field name="model">vendorbridge.approval.workflow</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="state=='approved'"
+                  decoration-warning="state=='pending'"
+                  decoration-danger="state=='rejected'">
+                <field name="rfq_id"/>
+                <field name="quotation_id"/>
+                <field name="approver_level"/>
+                <field name="approver_id" widget="many2one_avatar_user"/>
+                <field name="state" widget="badge"
+                       decoration-success="state=='approved'"
+                       decoration-warning="state=='pending'"
+                       decoration-danger="state=='rejected'"/>
+                <field name="remarks"/>
+                <field name="action_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Approval Workflow Form -->
+    <record id="view_approval_form" model="ir.ui.view">
+        <field name="name">vendorbridge.approval.workflow.form</field>
+        <field name="model">vendorbridge.approval.workflow</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" string="Approve"
+                            type="object" class="btn-success"
+                            invisible="state != 'pending'"
+                            groups="vendorbridge.group_manager"/>
+                    <button name="action_reject" string="Reject"
+                            type="object" class="btn-danger"
+                            invisible="state != 'pending'"
+                            groups="vendorbridge.group_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Approval Details">
+                            <field name="rfq_id"/>
+                            <field name="quotation_id"/>
+                            <field name="approver_level"/>
+                            <field name="approver_id"/>
+                            <field name="action_date"/>
+                        </group>
+                        <group string="RFQ Summary">
+                            <field name="rfq_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Remarks">
+                        <field name="remarks" placeholder="Enter your remarks here (mandatory for rejection)..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Approval Search -->
+    <record id="view_approval_search" model="ir.ui.view">
+        <field name="name">vendorbridge.approval.workflow.search</field>
+        <field name="model">vendorbridge.approval.workflow</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="rfq_id"/>
+                <field name="approver_id"/>
+                <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Approved" name="approved" domain="[('state','=','approved')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state','=','rejected')]"/>
+                <filter string="My Approvals" name="my_approvals" domain="[('approver_id','=',uid)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Approver" name="group_approver" context="{'group_by': 'approver_id'}"/>
+                    <filter string="RFQ" name="group_rfq" context="{'group_by': 'rfq_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Approval Action -->
+    <record id="action_approval_list" model="ir.actions.act_window">
+        <field name="name">Approval Workflow</field>
+        <field name="res_model">vendorbridge.approval.workflow</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_approval_search"/>
+        <field name="context">{'search_default_pending': 1, 'search_default_my_approvals': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No pending approvals
+            </p>
+            <p>Approval requests will appear here when RFQs require your review.</p>
+        </field>
+    </record>
+</odoo>

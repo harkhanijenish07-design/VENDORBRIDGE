@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Quotation Tree (Comparison View) -->
+    <record id="view_quotation_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.quotation.tree</field>
+        <field name="model">vendorbridge.quotation</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="is_lowest and state=='submitted'"
+                  decoration-muted="state=='rejected'"
+                  decoration-bf="is_selected">
+                <field name="name"/>
+                <field name="rfq_id"/>
+                <field name="vendor_id"/>
+                <field name="subtotal" widget="float" options="{'precision': 2}"/>
+                <field name="discount_percent"/>
+                <field name="discount_amount" widget="float" options="{'precision': 2}"/>
+                <field name="total" widget="float" options="{'precision': 2}"/>
+                <field name="delivery_days"/>
+                <field name="delivery_date"/>
+                <field name="is_lowest" widget="boolean"/>
+                <field name="is_selected" widget="boolean"/>
+                <field name="state" widget="badge"
+                       decoration-success="state=='selected'"
+                       decoration-info="state in ('draft','submitted')"
+                       decoration-danger="state=='rejected'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Quotation Form -->
+    <record id="view_quotation_form" model="ir.ui.view">
+        <field name="name">vendorbridge.quotation.form</field>
+        <field name="model">vendorbridge.quotation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" string="Submit Quotation"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_select" string="Select as Winner"
+                            type="object" class="btn-success"
+                            invisible="state != 'submitted'"
+                            groups="vendorbridge.group_procurement_officer"/>
+                    <button name="action_reject" string="Reject"
+                            type="object" class="btn-danger"
+                            invisible="state != 'submitted'"
+                            groups="vendorbridge.group_procurement_officer"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,selected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="rfq_id"/>
+                            <field name="vendor_id"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="delivery_days"/>
+                            <field name="delivery_date"/>
+                        </group>
+                        <group>
+                            <field name="subtotal" widget="float" options="{'precision': 2}"/>
+                            <field name="discount_percent"/>
+                            <field name="discount_amount" widget="float" options="{'precision': 2}"/>
+                            <field name="total" widget="float" options="{'precision': 2}"/>
+                            <field name="is_lowest"/>
+                            <field name="is_selected"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Line Items">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="rfq_line_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="gst_rate"/>
+                                    <field name="price_subtotal" sum="Total"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Notes &amp; Attachments">
+                            <group>
+                                <field name="notes"/>
+                            </group>
+                            <group>
+                                <field name="attachment_ids" widget="many2many_binary"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Quotation Search -->
+    <record id="view_quotation_search" model="ir.ui.view">
+        <field name="name">vendorbridge.quotation.search</field>
+        <field name="model">vendorbridge.quotation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="rfq_id"/>
+                <field name="vendor_id"/>
+                <filter string="Submitted" name="submitted" domain="[('state','=','submitted')]"/>
+                <filter string="Selected" name="selected" domain="[('state','=','selected')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state','=','rejected')]"/>
+                <filter string="Lowest Price" name="lowest" domain="[('is_lowest','=',True)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="RFQ" name="group_rfq" context="{'group_by': 'rfq_id'}"/>
+                    <filter string="Vendor" name="group_vendor" context="{'group_by': 'vendor_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Quotation Action -->
+    <record id="action_quotation_list" model="ir.actions.act_window">
+        <field name="name">Vendor Quotations</field>
+        <field name="res_model">vendorbridge.quotation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_quotation_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No quotations received yet
+            </p>
+            <p>Vendors will submit quotations in response to your RFQs.</p>
+        </field>
+    </record>
+</odoo>

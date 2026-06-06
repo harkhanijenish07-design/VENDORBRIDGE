@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- RFQ Tree View -->
+    <record id="view_rfq_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.rfq.tree</field>
+        <field name="model">vendorbridge.rfq</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state=='cancelled'"
+                  decoration-success="state in ('approved','po_created','closed')"
+                  decoration-warning="state=='pending_approval'"
+                  decoration-info="state in ('sent','quoted','compared')">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="category_id"/>
+                <field name="requestor_id" widget="many2one_avatar_user"/>
+                <field name="deadline"/>
+                <field name="priority" widget="priority"/>
+                <field name="quotation_count"/>
+                <field name="total_estimated" widget="float" options="{'precision': 2}"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('approved','po_created','closed')"
+                       decoration-warning="state=='pending_approval'"
+                       decoration-info="state in ('sent','quoted','compared')"
+                       decoration-danger="state=='cancelled'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- RFQ Form View (3-step Notebook) -->
+    <record id="view_rfq_form" model="ir.ui.view">
+        <field name="name">vendorbridge.rfq.form</field>
+        <field name="model">vendorbridge.rfq</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send_to_vendors" string="Send to Vendors"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_initiate_approval" string="Initiate Approval"
+                            type="object" class="btn-primary"
+                            invisible="state != 'compared'"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object" class="btn-secondary"
+                            invisible="state in ('cancelled','closed','po_created','invoiced')"/>
+                    <button name="action_reset_draft" string="Reset to Draft"
+                            type="object" class="btn-secondary"
+                            invisible="state != 'cancelled'"/>
+                    <button name="action_view_quotations" string="View Quotations"
+                            type="object" class="btn-secondary"
+                            icon="fa-list"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,sent,quoted,compared,pending_approval,approved,po_created,invoiced,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_quotations" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="quotation_count" widget="statinfo" string="Quotations"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <notebook>
+                        <!-- Step 1: Details -->
+                        <page string="Details" name="details">
+                            <group>
+                                <group>
+                                    <field name="title"/>
+                                    <field name="category_id"/>
+                                    <field name="priority"/>
+                                    <field name="deadline"/>
+                                </group>
+                                <group>
+                                    <field name="requestor_id"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="total_estimated" widget="float" options="{'precision': 2}"/>
+                                    <field name="approval_required"/>
+                                    <field name="approval_done"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="description" placeholder="Describe the procurement requirements..."/>
+                            </group>
+                        </page>
+
+                        <!-- Step 2: Line Items -->
+                        <page string="Line Items" name="line_items">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Step 3: Vendors & Attachments -->
+                        <page string="Vendors &amp; Attachments" name="vendors_attachments">
+                            <group>
+                                <field name="vendor_ids" widget="many2many_tags"
+                                       options="{'color_field': 'color'}"
+                                       placeholder="Select approved vendors to invite..."/>
+                            </group>
+                            <group>
+                                <field name="attachment_ids" widget="many2many_binary"/>
+                            </group>
+                        </page>
+
+                        <!-- Approvals Tab -->
+                        <page string="Approvals" name="approvals"
+                              invisible="state not in ('pending_approval','approved','po_created','invoiced','closed')">
+                            <field name="approval_ids">
+                                <tree>
+                                    <field name="approver_level"/>
+                                    <field name="approver_id"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state=='approved'"
+                                           decoration-warning="state=='pending'"
+                                           decoration-danger="state=='rejected'"/>
+                                    <field name="remarks"/>
+                                    <field name="action_date"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Quotations Tab -->
+                        <page string="Quotations" name="quotations_tab"
+                              invisible="state == 'draft'">
+                            <field name="quotation_ids">
+                                <tree decoration-success="is_selected"
+                                      decoration-muted="state=='rejected'">
+                                    <field name="name"/>
+                                    <field name="vendor_id"/>
+                                    <field name="subtotal" widget="float" options="{'precision': 2}"/>
+                                    <field name="discount_percent"/>
+                                    <field name="total" widget="float" options="{'precision': 2}"/>
+                                    <field name="delivery_days"/>
+                                    <field name="is_lowest"/>
+                                    <field name="is_selected"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state=='selected'"
+                                           decoration-info="state=='submitted'"
+                                           decoration-danger="state=='rejected'"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- RFQ Search View -->
+    <record id="view_rfq_search" model="ir.ui.view">
+        <field name="name">vendorbridge.rfq.search</field>
+        <field name="model">vendorbridge.rfq</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="category_id"/>
+                <field name="requestor_id"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Sent" name="sent" domain="[('state','=','sent')]"/>
+                <filter string="Pending Approval" name="pending_approval" domain="[('state','=','pending_approval')]"/>
+                <filter string="Approved" name="approved" domain="[('state','=','approved')]"/>
+                <filter string="Active" name="active" domain="[('state','not in',('cancelled','closed'))]"/>
+                <separator/>
+                <filter string="High Priority" name="high_priority" domain="[('priority','in',('high','critical'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
+                    <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                    <filter string="Requestor" name="group_requestor" context="{'group_by': 'requestor_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- RFQ List Action -->
+    <record id="action_rfq_list" model="ir.actions.act_window">
+        <field name="name">Requests for Quotation</field>
+        <field name="res_model">vendorbridge.rfq</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_rfq_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Request for Quotation
+            </p>
+            <p>Start the procurement process by creating an RFQ.</p>
+        </field>
+    </record>
+</odoo>

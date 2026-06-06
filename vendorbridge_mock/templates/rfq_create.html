@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Create RFQ - VendorBridge{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2>Create Request for Quotation (RFQ)</h2>
+    <p>Solicit bids for materials, services, or equipment</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Stepper Indicator -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body py-4 px-5">
+                <div class="stepper" id="rfq-stepper">
+                    <div class="stepper-step active" id="step-indicator-1">
+                        <div class="stepper-circle">1</div>
+                        <span>RFQ Information</span>
+                    </div>
+                    <div class="stepper-line" id="step-line-1"></div>
+                    <div class="stepper-step" id="step-indicator-2">
+                        <div class="stepper-circle">2</div>
+                        <span>Select Vendors</span>
+                    </div>
+                    <div class="stepper-line" id="step-line-2"></div>
+                    <div class="stepper-step" id="step-indicator-3">
+                        <div class="stepper-circle">3</div>
+                        <span>Upload & Review</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form action="/api/rfqs" method="POST" id="rfq-form" class="needs-validation">
+            <!-- STEP 1: RFQ INFO -->
+            <div class="card border-0 shadow-sm mb-4 step-panel" id="panel-1">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-secondary fw-bold" style="font-size: 1rem;"><i class="bi bi-info-circle me-2"></i>Step 1: Basic Information & Line Items</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="title" class="form-label fw-semibold text-secondary">RFQ Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="e.g. Office Stationery Restock Q3" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="category" class="form-label fw-semibold text-secondary">Category *</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="IT Hardware">IT Hardware</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Stationery">Stationery</option>
+                                <option value="Logistics">Logistics</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="deadline" class="form-label fw-semibold text-secondary">Deadline Date *</label>
+                            <input type="date" class="form-control" id="deadline" name="deadline" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label fw-semibold text-secondary">Priority *</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low">Low</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 opacity-50">
+
+                    <h6 class="fw-bold mb-3 text-secondary">RFQ Line Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle" id="line-items-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Description / Specification *</th>
+                                    <th style="width: 150px;">Quantity *</th>
+                                    <th style="width: 150px;">Unit / UOM *</th>
+                                    <th style="width: 60px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="text" class="form-control" name="line_description[]" placeholder="Item description" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control" name="line_quantity[]" value="1" min="1" step="any" required>
+                                    </td>
+                                    <td>
+                                        <select class="form-select" name="line_uom[]" required>
+                                            <option value="Units">Units</option>
+                                            <option value="Boxes">Boxes</option>
+                                            <option value="Liters">Liters</option>
+                                            <option value="Kg">Kg</option>
+                                            <option value="Hours">Hours</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 remove-line-btn" onclick="removeLineRow(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addLineRow()">
+                        <i class="bi bi-plus-circle me-1"></i> Add Line Item
+                    </button>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-end p-3">
+                    <button type="button" class="btn btn-primary" onclick="goToStep(2)">Next: Select Vendors <i class="bi bi-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- STEP 2: SELECT VENDORS -->
+            <div class="card border-0 shadow-sm mb-4 step-panel d-none" id="panel-2">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-secondary fw-bold" style="font-size: 1rem;"><i class="bi bi-people me-2"></i>Step 2: Assign Vendors</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4">Select the verified suppliers that will receive notifications to bid on this RFQ. Only approved vendors are listed.</p>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control form-control-sm" id="vendor-search" placeholder="Filter vendors by name..." onkeyup="filterVendorsList()">
+                        </div>
+                    </div>
+
+                    <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="vendors-list-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"><input type="checkbox" id="select-all-vendors" onclick="toggleAllVendors(this)"></th>
+                                        <th>Vendor Name</th>
+                                        <th>Contact Email</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if approved_vendors %}
+                                        {% for vendor in approved_vendors %}
+                                        <tr class="vendor-row">
+                                            <td>
+                                                <input type="checkbox" class="vendor-checkbox" name="assigned_vendors[]" value="{{ vendor.id }}">
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark vendor-name">{{ vendor.company_name }}</div>
+                                                <div class="small text-muted">{{ vendor.contact_name }}</div>
+                                            </td>
+                                            <td>{{ vendor.email }}</td>
+                                            <td><span class="text-warning"><i class="bi bi-star-fill"></i></span> {{ "%.1f"|format(vendor.rating) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No approved vendors found. Please add vendors first.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-between p-3">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(3)">Next: Review & Attach <i class="bi bi-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <!-- STEP 3: ATTACHMENTS & REVIEW -->
+            <div class="card border-0 shadow-sm mb-4 step-panel d-none" id="panel-3">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-secondary fw-bold" style="font-size: 1rem;"><i class="bi bi-file-earmark-arrow-up me-2"></i>Step 3: Description & Attachments</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-semibold text-secondary">RFQ Description & Special Instructions *</label>
+                        <textarea class="form-control" id="description" name="description" rows="5" placeholder="Specify terms, delivery instructions, quality expectations, etc..." required></textarea>
+                    </div>
+
+                    <!-- File Dropzone Mockup -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary">Technical Specifications / Layout Designs</label>
+                        <div class="border border-dashed rounded p-4 text-center bg-light" style="border-width: 2px !important; cursor: pointer;">
+                            <i class="bi bi-cloud-arrow-up text-secondary" style="font-size: 2.5rem;"></i>
+                            <div class="fw-bold mt-2">Drag & drop files or click to upload</div>
+                            <div class="small text-muted">Accepts PDF, DOCX, XLSX, PNG up to 10MB</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-between p-3">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="status" value="draft" class="btn btn-outline-primary">Save as Draft</button>
+                        <button type="submit" name="status" value="open" class="btn btn-success">Publish & Send to Vendors</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentStep = 1;
+
+    function goToStep(step) {
+        if (step > currentStep) {
+            // Simple validation before going forward
+            if (currentStep === 1) {
+                const title = document.getElementById("title").value.trim();
+                const deadline = document.getElementById("deadline").value;
+                if (!title || !deadline) {
+                    alert("Please fill in the title and deadline date.");
+                    return;
+                }
+                
+                // Validate that at least one line item has description
+                const descriptions = document.getElementsByName("line_description[]");
+                if (descriptions.length === 0) {
+                    alert("Please add at least one line item.");
+                    return;
+                }
+                for (let input of descriptions) {
+                    if (!input.value.trim()) {
+                        alert("Please fill in descriptions for all line items.");
+                        return;
+                    }
+                }
+            }
+            if (currentStep === 2) {
+                const selected = document.querySelectorAll(".vendor-checkbox:checked");
+                if (selected.length === 0) {
+                    if (!confirm("No vendors selected. Do you want to proceed without assigning vendors?")) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Hide current panel
+        document.getElementById(`panel-${currentStep}`).classList.add("d-none");
+        
+        // Show new panel
+        document.getElementById(`panel-${step}`).classList.remove("d-none");
+
+        // Update stepper indicators
+        document.getElementById(`step-indicator-${currentStep}`).classList.remove("active");
+        if (step > currentStep) {
+            document.getElementById(`step-indicator-${currentStep}`).classList.add("done");
+            document.getElementById(`step-line-${currentStep}`).classList.add("done");
+        } else {
+            document.getElementById(`step-indicator-${step}`).classList.remove("done");
+            document.getElementById(`step-line-${step}`).classList.remove("done");
+        }
+        
+        document.getElementById(`step-indicator-${step}`).classList.add("active");
+        
+        currentStep = step;
+        window.scrollTo(0, 0);
+    }
+
+    function addLineRow() {
+        const tbody = document.querySelector("#line-items-table tbody");
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td>
+                <input type="text" class="form-control" name="line_description[]" placeholder="Item description" required>
+            </td>
+            <td>
+                <input type="number" class="form-control" name="line_quantity[]" value="1" min="1" step="any" required>
+            </td>
+            <td>
+                <select class="form-select" name="line_uom[]" required>
+                    <option value="Units">Units</option>
+                    <option value="Boxes">Boxes</option>
+                    <option value="Liters">Liters</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Hours">Hours</option>
+                </select>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 remove-line-btn" onclick="removeLineRow(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+
+    function removeLineRow(button) {
+        const row = button.closest("tr");
+        const tbody = row.parentNode;
+        if (tbody.children.length > 1) {
+            row.remove();
+        } else {
+            alert("At least one line item is required.");
+        }
+    }
+
+    function toggleAllVendors(checkbox) {
+        const checked = checkbox.checked;
+        document.querySelectorAll(".vendor-checkbox").forEach(cb => {
+            cb.checked = checked;
+        });
+    }
+
+    function filterVendorsList() {
+        const query = document.getElementById("vendor-search").value.toLowerCase();
+        document.querySelectorAll(".vendor-row").forEach(row => {
+            const name = row.querySelector(".vendor-name").textContent.toLowerCase();
+            if (name.includes(query)) {
+                row.classList.remove("d-none");
+            } else {
+                row.classList.add("d-none");
+            }
+        });
+    }
+</script>
+{% endblock %}

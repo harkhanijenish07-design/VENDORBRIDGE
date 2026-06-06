@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Activity Log Tree -->
+    <record id="view_activity_log_tree" model="ir.ui.view">
+        <field name="name">vendorbridge.activitylog.tree</field>
+        <field name="model">vendorbridge.activitylog</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="false" delete="false"
+                  decoration-info="category=='rfq'"
+                  decoration-success="category=='approval'"
+                  decoration-warning="category=='quotation'"
+                  decoration-danger="category=='invoice'">
+                <field name="create_date" string="Date &amp; Time"/>
+                <field name="action"/>
+                <field name="record_name"/>
+                <field name="model_name"/>
+                <field name="category" widget="badge"
+                       decoration-info="category=='rfq'"
+                       decoration-success="category in ('approval','vendor')"
+                       decoration-warning="category in ('quotation','purchase_order')"
+                       decoration-danger="category=='invoice'"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="details"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Activity Log Form (Read-only) -->
+    <record id="view_activity_log_form" model="ir.ui.view">
+        <field name="name">vendorbridge.activitylog.form</field>
+        <field name="model">vendorbridge.activitylog</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="action"/>
+                            <field name="category"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="model_name"/>
+                            <field name="record_id"/>
+                            <field name="record_name"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="details"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Activity Log Search (with Category Tabs) -->
+    <record id="view_activity_log_search" model="ir.ui.view">
+        <field name="name">vendorbridge.activitylog.search</field>
+        <field name="model">vendorbridge.activitylog</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="action"/>
+                <field name="record_name"/>
+                <field name="user_id"/>
+                <field name="model_name"/>
+                <!-- Category Tab Filters -->
+                <filter string="All" name="all" domain="[]"/>
+                <filter string="RFQ" name="cat_rfq" domain="[('category','=','rfq')]"/>
+                <filter string="Quotations" name="cat_quotation" domain="[('category','=','quotation')]"/>
+                <filter string="Approvals" name="cat_approval" domain="[('category','=','approval')]"/>
+                <filter string="Purchase Orders" name="cat_po" domain="[('category','=','purchase_order')]"/>
+                <filter string="Invoices" name="cat_invoice" domain="[('category','=','invoice')]"/>
+                <filter string="Vendors" name="cat_vendor" domain="[('category','=','vendor')]"/>
+                <separator/>
+                <filter string="Today" name="today" domain="[('create_date','&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
+                <filter string="This Week" name="this_week" domain="[('create_date','&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%%Y-%%m-%%d'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Category" name="group_category" context="{'group_by': 'category'}"/>
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                    <filter string="Model" name="group_model" context="{'group_by': 'model_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Activity Log Action -->
+    <record id="action_activity_log_list" model="ir.actions.act_window">
+        <field name="name">Activity Logs</field>
+        <field name="res_model">vendorbridge.activitylog</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_activity_log_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No activity logs yet
+            </p>
+            <p>All procurement activities will be logged here automatically.</p>
+        </field>
+    </record>
+</odoo>
